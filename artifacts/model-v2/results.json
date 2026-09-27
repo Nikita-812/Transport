@@ -1,0 +1,792 @@
+{
+  "protocol": "fixed-origin two-calendar-month forecasts; integer predictions; same seed/config",
+  "weather": {
+    "path": "data\\weather\\moscow_2025_hourly.csv",
+    "sha256": "aeeea0c56f1f0b4335f5f092d8421bfd0df2f1c1fe8b4a5e4aa8e848e79857f1",
+    "kind": "actual archive weather (perfect forecast)"
+  },
+  "variants": {
+    "categorical-month": {
+      "config": {
+        "month_mode": "categorical",
+        "weather": false,
+        "calendar_adjustment": false
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 1630059,
+          "target_sum": 11555908,
+          "wape_score": 0.8589415042071986
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1802041,
+          "target_sum": 10717653,
+          "wape_score": 0.8318623489676331
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2041462,
+          "target_sum": 12754481,
+          "wape_score": 0.8399415860198467
+        }
+      },
+      "combined_wape_score": 0.8437377116311554,
+      "seconds": 24.39109560000361,
+      "submission": "artifacts\\model-v2\\categorical-month\\submission.csv",
+      "future_day_comparison": {
+        "2025-11-01": {
+          "kind": "working_saturday",
+          "prediction": 236559,
+          "neighbor_days": [
+            "2025-11-08"
+          ],
+          "neighbor_mean": 129050
+        },
+        "2025-11-03": {
+          "kind": "transferred_day_off",
+          "prediction": 117653,
+          "neighbor_days": [
+            "2025-11-10"
+          ],
+          "neighbor_mean": 230688
+        },
+        "2025-11-04": {
+          "kind": "holiday",
+          "prediction": 114795,
+          "neighbor_days": [
+            "2025-11-11"
+          ],
+          "neighbor_mean": 235612
+        },
+        "2025-12-31": {
+          "kind": "transferred_day_off",
+          "prediction": 118452,
+          "neighbor_days": [
+            "2025-12-24"
+          ],
+          "neighbor_mean": 236248
+        },
+        "2025-12-22": {
+          "kind": "pre_new_year_week",
+          "prediction": 230688,
+          "neighbor_days": [
+            "2025-12-15",
+            "2025-12-29"
+          ],
+          "neighbor_mean": 230688
+        },
+        "2025-12-23": {
+          "kind": "pre_new_year_week",
+          "prediction": 235612,
+          "neighbor_days": [
+            "2025-12-16",
+            "2025-12-30"
+          ],
+          "neighbor_mean": 235612
+        },
+        "2025-12-24": {
+          "kind": "pre_new_year_week",
+          "prediction": 236248,
+          "neighbor_days": [
+            "2025-12-17",
+            "2025-12-31"
+          ],
+          "neighbor_mean": 177350
+        },
+        "2025-12-25": {
+          "kind": "pre_new_year_week",
+          "prediction": 237817,
+          "neighbor_days": [
+            "2025-12-18"
+          ],
+          "neighbor_mean": 237817
+        },
+        "2025-12-26": {
+          "kind": "pre_new_year_week",
+          "prediction": 230253,
+          "neighbor_days": [
+            "2025-12-19"
+          ],
+          "neighbor_mean": 230253
+        },
+        "2025-12-27": {
+          "kind": "pre_new_year_week",
+          "prediction": 129050,
+          "neighbor_days": [
+            "2025-12-20"
+          ],
+          "neighbor_mean": 129050
+        },
+        "2025-12-28": {
+          "kind": "pre_new_year_week",
+          "prediction": 112794,
+          "neighbor_days": [
+            "2025-12-21"
+          ],
+          "neighbor_mean": 112794
+        },
+        "2025-12-29": {
+          "kind": "pre_new_year_week",
+          "prediction": 230688,
+          "neighbor_days": [
+            "2025-12-22"
+          ],
+          "neighbor_mean": 230688
+        },
+        "2025-12-30": {
+          "kind": "pre_new_year_week",
+          "prediction": 235612,
+          "neighbor_days": [
+            "2025-12-23"
+          ],
+          "neighbor_mean": 235612
+        }
+      }
+    },
+    "categorical-month-weather": {
+      "config": {
+        "month_mode": "categorical",
+        "weather": true,
+        "calendar_adjustment": false
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 1523903,
+          "target_sum": 11555908,
+          "wape_score": 0.868127800948225
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1854856,
+          "target_sum": 10717653,
+          "wape_score": 0.8269344976927318
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2087811,
+          "target_sum": 12754481,
+          "wape_score": 0.836307647484833
+        }
+      },
+      "combined_wape_score": 0.8439373231309931,
+      "seconds": 25.37912709999364,
+      "submission": "artifacts\\model-v2\\categorical-month-weather\\submission.csv",
+      "future_day_comparison": {
+        "2025-11-01": {
+          "kind": "working_saturday",
+          "prediction": 236611,
+          "neighbor_days": [
+            "2025-11-08"
+          ],
+          "neighbor_mean": 129705
+        },
+        "2025-11-03": {
+          "kind": "transferred_day_off",
+          "prediction": 114761,
+          "neighbor_days": [
+            "2025-11-10"
+          ],
+          "neighbor_mean": 227127
+        },
+        "2025-11-04": {
+          "kind": "holiday",
+          "prediction": 116326,
+          "neighbor_days": [
+            "2025-11-11"
+          ],
+          "neighbor_mean": 232566
+        },
+        "2025-12-31": {
+          "kind": "transferred_day_off",
+          "prediction": 114259,
+          "neighbor_days": [
+            "2025-12-24"
+          ],
+          "neighbor_mean": 231859
+        },
+        "2025-12-22": {
+          "kind": "pre_new_year_week",
+          "prediction": 225834,
+          "neighbor_days": [
+            "2025-12-15",
+            "2025-12-29"
+          ],
+          "neighbor_mean": 226414
+        },
+        "2025-12-23": {
+          "kind": "pre_new_year_week",
+          "prediction": 232554,
+          "neighbor_days": [
+            "2025-12-16",
+            "2025-12-30"
+          ],
+          "neighbor_mean": 231040
+        },
+        "2025-12-24": {
+          "kind": "pre_new_year_week",
+          "prediction": 231859,
+          "neighbor_days": [
+            "2025-12-17",
+            "2025-12-31"
+          ],
+          "neighbor_mean": 173692
+        },
+        "2025-12-25": {
+          "kind": "pre_new_year_week",
+          "prediction": 231745,
+          "neighbor_days": [
+            "2025-12-18"
+          ],
+          "neighbor_mean": 233560
+        },
+        "2025-12-26": {
+          "kind": "pre_new_year_week",
+          "prediction": 225114,
+          "neighbor_days": [
+            "2025-12-19"
+          ],
+          "neighbor_mean": 226698
+        },
+        "2025-12-27": {
+          "kind": "pre_new_year_week",
+          "prediction": 123516,
+          "neighbor_days": [
+            "2025-12-20"
+          ],
+          "neighbor_mean": 121826
+        },
+        "2025-12-28": {
+          "kind": "pre_new_year_week",
+          "prediction": 103737,
+          "neighbor_days": [
+            "2025-12-21"
+          ],
+          "neighbor_mean": 104109
+        },
+        "2025-12-29": {
+          "kind": "pre_new_year_week",
+          "prediction": 226571,
+          "neighbor_days": [
+            "2025-12-22"
+          ],
+          "neighbor_mean": 225834
+        },
+        "2025-12-30": {
+          "kind": "pre_new_year_week",
+          "prediction": 230887,
+          "neighbor_days": [
+            "2025-12-23"
+          ],
+          "neighbor_mean": 232554
+        }
+      }
+    },
+    "numeric-month": {
+      "config": {
+        "month_mode": "numeric",
+        "weather": false,
+        "calendar_adjustment": false
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 2051016,
+          "target_sum": 11555908,
+          "wape_score": 0.8225136441030856
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1662351,
+          "target_sum": 10717653,
+          "wape_score": 0.8448959860894918
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2096694,
+          "target_sum": 12754481,
+          "wape_score": 0.8356111863744201
+        }
+      },
+      "combined_wape_score": 0.834131151264464,
+      "seconds": 22.787046799989184,
+      "submission": "artifacts\\model-v2\\numeric-month\\submission.csv",
+      "future_day_comparison": {
+        "2025-11-01": {
+          "kind": "working_saturday",
+          "prediction": 235152,
+          "neighbor_days": [
+            "2025-11-08"
+          ],
+          "neighbor_mean": 131963
+        },
+        "2025-11-03": {
+          "kind": "transferred_day_off",
+          "prediction": 121700,
+          "neighbor_days": [
+            "2025-11-10"
+          ],
+          "neighbor_mean": 233091
+        },
+        "2025-11-04": {
+          "kind": "holiday",
+          "prediction": 120898,
+          "neighbor_days": [
+            "2025-11-11"
+          ],
+          "neighbor_mean": 238686
+        },
+        "2025-12-31": {
+          "kind": "transferred_day_off",
+          "prediction": 124156,
+          "neighbor_days": [
+            "2025-12-24"
+          ],
+          "neighbor_mean": 239191
+        },
+        "2025-12-22": {
+          "kind": "pre_new_year_week",
+          "prediction": 233091,
+          "neighbor_days": [
+            "2025-12-15",
+            "2025-12-29"
+          ],
+          "neighbor_mean": 233091
+        },
+        "2025-12-23": {
+          "kind": "pre_new_year_week",
+          "prediction": 238686,
+          "neighbor_days": [
+            "2025-12-16",
+            "2025-12-30"
+          ],
+          "neighbor_mean": 238686
+        },
+        "2025-12-24": {
+          "kind": "pre_new_year_week",
+          "prediction": 239191,
+          "neighbor_days": [
+            "2025-12-17",
+            "2025-12-31"
+          ],
+          "neighbor_mean": 181674
+        },
+        "2025-12-25": {
+          "kind": "pre_new_year_week",
+          "prediction": 240470,
+          "neighbor_days": [
+            "2025-12-18"
+          ],
+          "neighbor_mean": 240470
+        },
+        "2025-12-26": {
+          "kind": "pre_new_year_week",
+          "prediction": 231615,
+          "neighbor_days": [
+            "2025-12-19"
+          ],
+          "neighbor_mean": 231615
+        },
+        "2025-12-27": {
+          "kind": "pre_new_year_week",
+          "prediction": 131963,
+          "neighbor_days": [
+            "2025-12-20"
+          ],
+          "neighbor_mean": 131963
+        },
+        "2025-12-28": {
+          "kind": "pre_new_year_week",
+          "prediction": 108853,
+          "neighbor_days": [
+            "2025-12-21"
+          ],
+          "neighbor_mean": 108853
+        },
+        "2025-12-29": {
+          "kind": "pre_new_year_week",
+          "prediction": 233091,
+          "neighbor_days": [
+            "2025-12-22"
+          ],
+          "neighbor_mean": 233091
+        },
+        "2025-12-30": {
+          "kind": "pre_new_year_week",
+          "prediction": 238686,
+          "neighbor_days": [
+            "2025-12-23"
+          ],
+          "neighbor_mean": 238686
+        }
+      }
+    },
+    "no-month": {
+      "config": {
+        "month_mode": "none",
+        "weather": false,
+        "calendar_adjustment": false
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 2051881,
+          "target_sum": 11555908,
+          "wape_score": 0.8224387906168862
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1662888,
+          "target_sum": 10717653,
+          "wape_score": 0.8448458818362565
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2096873,
+          "target_sum": 12754481,
+          "wape_score": 0.8355971520910964
+        }
+      },
+      "combined_wape_score": 0.8340860159982679,
+      "seconds": 19.571732599986717
+    },
+    "numeric-month-weather": {
+      "config": {
+        "month_mode": "numeric",
+        "weather": true,
+        "calendar_adjustment": false
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 1636039,
+          "target_sum": 11555908,
+          "wape_score": 0.8584240199904672
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1700393,
+          "target_sum": 10717653,
+          "wape_score": 0.8413465149506146
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2157676,
+          "target_sum": 12754481,
+          "wape_score": 0.8308299647786531
+        }
+      },
+      "combined_wape_score": 0.8431511530104937,
+      "seconds": 24.81927259999793,
+      "submission": "artifacts\\model-v2\\numeric-month-weather\\submission.csv",
+      "future_day_comparison": {
+        "2025-11-01": {
+          "kind": "working_saturday",
+          "prediction": 239652,
+          "neighbor_days": [
+            "2025-11-08"
+          ],
+          "neighbor_mean": 136447
+        },
+        "2025-11-03": {
+          "kind": "transferred_day_off",
+          "prediction": 121192,
+          "neighbor_days": [
+            "2025-11-10"
+          ],
+          "neighbor_mean": 232023
+        },
+        "2025-11-04": {
+          "kind": "holiday",
+          "prediction": 122187,
+          "neighbor_days": [
+            "2025-11-11"
+          ],
+          "neighbor_mean": 237365
+        },
+        "2025-12-31": {
+          "kind": "transferred_day_off",
+          "prediction": 118734,
+          "neighbor_days": [
+            "2025-12-24"
+          ],
+          "neighbor_mean": 237862
+        },
+        "2025-12-22": {
+          "kind": "pre_new_year_week",
+          "prediction": 231485,
+          "neighbor_days": [
+            "2025-12-15",
+            "2025-12-29"
+          ],
+          "neighbor_mean": 231261
+        },
+        "2025-12-23": {
+          "kind": "pre_new_year_week",
+          "prediction": 237135,
+          "neighbor_days": [
+            "2025-12-16",
+            "2025-12-30"
+          ],
+          "neighbor_mean": 235603
+        },
+        "2025-12-24": {
+          "kind": "pre_new_year_week",
+          "prediction": 237862,
+          "neighbor_days": [
+            "2025-12-17",
+            "2025-12-31"
+          ],
+          "neighbor_mean": 178526
+        },
+        "2025-12-25": {
+          "kind": "pre_new_year_week",
+          "prediction": 237930,
+          "neighbor_days": [
+            "2025-12-18"
+          ],
+          "neighbor_mean": 239088
+        },
+        "2025-12-26": {
+          "kind": "pre_new_year_week",
+          "prediction": 231034,
+          "neighbor_days": [
+            "2025-12-19"
+          ],
+          "neighbor_mean": 231892
+        },
+        "2025-12-27": {
+          "kind": "pre_new_year_week",
+          "prediction": 127034,
+          "neighbor_days": [
+            "2025-12-20"
+          ],
+          "neighbor_mean": 127614
+        },
+        "2025-12-28": {
+          "kind": "pre_new_year_week",
+          "prediction": 103678,
+          "neighbor_days": [
+            "2025-12-21"
+          ],
+          "neighbor_mean": 106483
+        },
+        "2025-12-29": {
+          "kind": "pre_new_year_week",
+          "prediction": 231360,
+          "neighbor_days": [
+            "2025-12-22"
+          ],
+          "neighbor_mean": 231485
+        },
+        "2025-12-30": {
+          "kind": "pre_new_year_week",
+          "prediction": 235157,
+          "neighbor_days": [
+            "2025-12-23"
+          ],
+          "neighbor_mean": 237135
+        }
+      }
+    },
+    "no-month-weather": {
+      "config": {
+        "month_mode": "none",
+        "weather": true,
+        "calendar_adjustment": false
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 1636039,
+          "target_sum": 11555908,
+          "wape_score": 0.8584240199904672
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1700393,
+          "target_sum": 10717653,
+          "wape_score": 0.8413465149506146
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2157676,
+          "target_sum": 12754481,
+          "wape_score": 0.8308299647786531
+        }
+      },
+      "combined_wape_score": 0.8431511530104937,
+      "seconds": 24.008462800004054,
+      "submission": "artifacts\\model-v2\\no-month-weather\\submission.csv",
+      "future_day_comparison": {
+        "2025-11-01": {
+          "kind": "working_saturday",
+          "prediction": 239829,
+          "neighbor_days": [
+            "2025-11-08"
+          ],
+          "neighbor_mean": 135421
+        },
+        "2025-11-03": {
+          "kind": "transferred_day_off",
+          "prediction": 120582,
+          "neighbor_days": [
+            "2025-11-10"
+          ],
+          "neighbor_mean": 234876
+        },
+        "2025-11-04": {
+          "kind": "holiday",
+          "prediction": 120477,
+          "neighbor_days": [
+            "2025-11-11"
+          ],
+          "neighbor_mean": 240166
+        },
+        "2025-12-31": {
+          "kind": "transferred_day_off",
+          "prediction": 120389,
+          "neighbor_days": [
+            "2025-12-24"
+          ],
+          "neighbor_mean": 240833
+        },
+        "2025-12-22": {
+          "kind": "pre_new_year_week",
+          "prediction": 234537,
+          "neighbor_days": [
+            "2025-12-15",
+            "2025-12-29"
+          ],
+          "neighbor_mean": 234623
+        },
+        "2025-12-23": {
+          "kind": "pre_new_year_week",
+          "prediction": 240344,
+          "neighbor_days": [
+            "2025-12-16",
+            "2025-12-30"
+          ],
+          "neighbor_mean": 239297
+        },
+        "2025-12-24": {
+          "kind": "pre_new_year_week",
+          "prediction": 240833,
+          "neighbor_days": [
+            "2025-12-17",
+            "2025-12-31"
+          ],
+          "neighbor_mean": 181049
+        },
+        "2025-12-25": {
+          "kind": "pre_new_year_week",
+          "prediction": 241656,
+          "neighbor_days": [
+            "2025-12-18"
+          ],
+          "neighbor_mean": 242504
+        },
+        "2025-12-26": {
+          "kind": "pre_new_year_week",
+          "prediction": 234100,
+          "neighbor_days": [
+            "2025-12-19"
+          ],
+          "neighbor_mean": 234891
+        },
+        "2025-12-27": {
+          "kind": "pre_new_year_week",
+          "prediction": 129949,
+          "neighbor_days": [
+            "2025-12-20"
+          ],
+          "neighbor_mean": 130157
+        },
+        "2025-12-28": {
+          "kind": "pre_new_year_week",
+          "prediction": 106585,
+          "neighbor_days": [
+            "2025-12-21"
+          ],
+          "neighbor_mean": 108980
+        },
+        "2025-12-29": {
+          "kind": "pre_new_year_week",
+          "prediction": 235331,
+          "neighbor_days": [
+            "2025-12-22"
+          ],
+          "neighbor_mean": 234537
+        },
+        "2025-12-30": {
+          "kind": "pre_new_year_week",
+          "prediction": 238971,
+          "neighbor_days": [
+            "2025-12-23"
+          ],
+          "neighbor_mean": 240344
+        }
+      }
+    },
+    "numeric-month-calendar": {
+      "config": {
+        "month_mode": "numeric",
+        "weather": false,
+        "calendar_adjustment": true
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 2043459,
+          "target_sum": 11555908,
+          "wape_score": 0.8231675953114199
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1678985,
+          "target_sum": 10717653,
+          "wape_score": 0.8433439671913244
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2113601,
+          "target_sum": 12754481,
+          "wape_score": 0.8342856130327843
+        }
+      },
+      "combined_wape_score": 0.8333893455991631,
+      "seconds": 18.904162299993914
+    },
+    "numeric-month-weather-calendar": {
+      "config": {
+        "month_mode": "numeric",
+        "weather": true,
+        "calendar_adjustment": true
+      },
+      "slices": {
+        "may-june": {
+          "rows": 14640,
+          "absolute_error": 1617331,
+          "target_sum": 11555908,
+          "wape_score": 0.8600429321521078
+        },
+        "july-august": {
+          "rows": 14880,
+          "absolute_error": 1704168,
+          "target_sum": 10717653,
+          "wape_score": 0.8409942923138116
+        },
+        "september-october": {
+          "rows": 14640,
+          "absolute_error": 2207627,
+          "target_sum": 12754481,
+          "wape_score": 0.8269136156931827
+        }
+      },
+      "combined_wape_score": 0.8421514396950878,
+      "seconds": 24.28772900000331
+    }
+  }
+}
