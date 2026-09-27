@@ -9,6 +9,13 @@ export function formatInteger(value: number): string {
   return integerFormat.format(value);
 }
 
+const percentFormat = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero' });
+
+/** Изменение сценария относительно базы: `formatDelta(48_487, 52_703)` → «−8,0 %». */
+export function formatDelta(value: number, base: number): string {
+  return `${percentFormat.format(base === 0 ? 0 : ((value - base) / base) * 100)} %`;
+}
+
 /** Число с заданным количеством знаков после запятой: `formatDecimal(0.861, 3)` → «0,861». */
 export function formatDecimal(value: number, digits: number): string {
   return new Intl.NumberFormat('ru-RU', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);

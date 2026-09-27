@@ -91,15 +91,22 @@ export function verifyHtml(html, sizeBytes = Buffer.byteLength(html, 'utf8')) {
     }
   }
 
-  // url(...) во встроенных стилях и style-атрибутах: разрешены только data: и blob:.
-  // Перед `url(` не должно быть части имени: в минифицированном JS есть вызовы `getDataURL(e)`
-  // и `URL.revokeObjectURL(n)` — это функции, а не ссылки на файлы.
-  for (const match of html.matchAll(/(?<![\w$.])url\(\s*(['"]?)([^'")]+)\1\s*\)/gi)) {
-    const value = match[2] ?? '';
-    if (isInlineValue(value) || value.startsWith('%23')) continue;
-    // Строки JS вида url(${...}) или url(" + x + ") — не ссылки на файлы.
-    if (/[${}+]/.test(value)) continue;
-    problems.push(`CSS url(${value}) не встроен (строка ${lineOf(html, match.index ?? 0)})`);
+  // url(...) во встроенных стилях и style-атрибутах: разрешены только data: и blob:. Скрипты не сканируются:
+  // в JS `url(` — это вызовы (`new URL(e, import.meta.url)`, `getDataURL(e)`) и методы, а не ссылки на файлы;
+  // ссылки сборки из JS ловит проверка assets/ ниже.
+  /** @type {{ css: string; line: number | null }[]} */
+  const styles = [];
+  for (const match of html.matchAll(/(<style\b[^>]*>)([\s\S]*?)<\/style\s*>/gi)) {
+    styles.push({ css: match[2] ?? '', line: lineOf(html, (match.index ?? 0) + (match[1] ?? '').length) });
+  }
+  for (const match of markup.matchAll(/\sstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) styles.push({ css: match[1] ?? match[2] ?? '', line: null });
+  for (const { css, line } of styles) {
+    for (const match of css.matchAll(/(?<![\w$.-])url\(\s*(['"]?)([^'")]+)\1\s*\)/gi)) {
+      const value = match[2] ?? '';
+      if (isInlineValue(value) || value.startsWith('%23')) continue;
+      const where = line === null ? 'атрибут style' : `строка ${line + lineOf(css, match.index ?? 0) - 1}`;
+      problems.push(`CSS url(${value}) не встроен (${where})`);
+    }
   }
 
   // Невстроенные чанки Vite: import("./assets/…") или "/assets/…-hash.js|css".

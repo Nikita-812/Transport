@@ -6,6 +6,9 @@ import { App } from './App';
 import { useUiStore } from './state/store';
 import { renderWithProviders } from './test/render';
 
+// MapLibre в jsdom не запускается (нет WebGL); вкладке карты здесь достаточно состояния загрузки.
+vi.mock('./components/map/maplibre', () => ({ loadMaplibre: () => new Promise(() => {}) }));
+
 const HEALTH = {
   ready: true,
   forecast_version: 'pooled_route_blend:1ad02854ca82',
@@ -62,7 +65,7 @@ describe('оболочка', () => {
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('tab', { name: 'Карта' })).toHaveAttribute('aria-selected', 'true');
     expect(useUiStore.getState().tab).toBe('map');
-    expect(screen.getByRole('tabpanel')).toHaveTextContent('Карта Москвы');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Карта нагрузки');
   });
 
   it('тема: светлая по умолчанию, переключение сохраняется', async () => {

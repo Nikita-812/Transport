@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { daysInclusive, isoToUtcMs } from './dates';
 import {
-  formatBucketLabel, formatBucketTitle, formatCompact, formatDays, formatDecimal, formatInteger,
+  formatBucketLabel, formatBucketTitle, formatCompact, formatDays, formatDecimal, formatDelta, formatInteger,
   formatIsoDate, formatWeekdayLong, formatWeekdayShort, pluralRu,
 } from './format';
 
@@ -11,6 +11,13 @@ describe('format', () => {
   it('целые ru-RU с разрядами', () => {
     expect(formatInteger(1234567.6)).toBe(`1${NBSP}234${NBSP}568`);
     expect(formatInteger(0)).toBe('0');
+  });
+
+  it('изменение сценария к базе в процентах со знаком', () => {
+    expect(formatDelta(48_487, 52_703)).toBe('-8,0 %');
+    expect(formatDelta(110, 100)).toBe('+10,0 %');
+    expect(formatDelta(100, 100)).toBe('0,0 %');
+    expect(formatDelta(5, 0)).toBe('0,0 %');
   });
 
   it('дробные с запятой', () => {

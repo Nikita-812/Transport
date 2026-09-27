@@ -1,0 +1,64 @@
+/* Карта нагрузки. Подложка одна и светлая в обеих темах (design D0), поэтому цвета поверх неё фиксированы. */
+.frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-lg);
+  background: #e9ecef;
+}
+
+/* Сеть вытянута с севера на юг (около 31 км), поэтому карте нужна высота: почти весь экран под шапкой. */
+.map {
+  width: 100%;
+  height: clamp(420px, calc(100vh - 200px), 760px);
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    height: clamp(340px, 62vh, 520px);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-md);
+  color: #212529;
+  background: rgba(233, 236, 239, 0.75);
+}
+
+/* Подпись номера маршрута (HTML-маркер): цвет маршрута как у чипов фильтра; клики проходят к карте. */
+.routeLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 6px;
+  border: 2px solid #ffffff;
+  border-radius: 11px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  font: 700 12px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  pointer-events: none;
+}
+
+.stopTooltip {
+  pointer-events: none;
+
+  :global(.maplibregl-popup-content) {
+    padding: 6px 10px;
+    color: #212529;
+    font: 12px/1.35 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.swatch {
+  flex: none;
+  width: 22px;
+  height: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 3px;
+}

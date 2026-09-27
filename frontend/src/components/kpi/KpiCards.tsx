@@ -1,12 +1,6 @@
 import { Paper, SimpleGrid, Stack, Text } from '@mantine/core';
 import { hourLabel, type Kpis } from '../../domain/aggregate';
-import { formatInteger, formatIsoDate } from '../../domain/format';
-
-const percentFormat = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero' });
-
-function delta(value: number, base: number): string {
-  return `${percentFormat.format(base === 0 ? 0 : ((value - base) / base) * 100)} %`;
-}
+import { formatDelta as delta, formatInteger, formatIsoDate } from '../../domain/format';
 
 export function KpiCards({ kpis, baseKpis = kpis }: { kpis: Kpis; baseKpis?: Kpis }) {
   const cards = [

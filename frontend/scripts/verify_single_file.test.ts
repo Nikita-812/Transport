@@ -37,6 +37,15 @@ describe('verifyHtml', () => {
     expect(verifyHtml(page('', script))).toEqual([]);
   });
 
+  it('url( в скриптах — вызовы и методы, а не CSS (MapLibre, помощник import() у Vite)', () => {
+    const script = '<script type="module">let r=new URL(e);new URL(e,import.meta.url).href;class T{url(e,t,n){return e}}</script>';
+    expect(verifyHtml(page('', script))).toEqual([]);
+  });
+
+  it('CSS url() на файл в атрибуте style', () => {
+    expect(verifyHtml(page('<div style="background: url(\'./tile.png\')"></div>'))[0]).toContain('CSS url(./tile.png) не встроен (атрибут style)');
+  });
+
   it('невстроенный чанк в JS', () => {
     expect(verifyHtml(page('', '<script type="module">import("./assets/chunk-abc.js")</script>'))[0]).toContain('файл сборки');
   });

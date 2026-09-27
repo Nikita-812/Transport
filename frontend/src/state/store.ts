@@ -17,6 +17,8 @@ interface UiState {
   nowMode: boolean;
   nowOutside: boolean;
   mapHour: number;
+  /** Остановка, открытая на карте (идентификатор кластера из `domain/stops.ts`). */
+  selectedStop: string | null;
   scenario: ScenarioRule[];
   initialize: (coverage: Coverage, search: string) => void;
   setTab: (tab: TabId) => void;
@@ -29,6 +31,7 @@ interface UiState {
   setGranularity: (granularity: Granularity) => void;
   setSplit: (split: Filters['split']) => void;
   setMapHour: (hour: number) => void;
+  setSelectedStop: (id: string | null) => void;
   updateScenarioRule: (kind: ScenarioKind, patch: Partial<ScenarioRule>) => void;
   resetScenario: () => void;
   goNow: () => void;
@@ -39,7 +42,7 @@ interface UiState {
 
 export const useUiStore = create<UiState>()((set, get) => ({
   tab: 'overview', panelOpen: false, coverage: null, filters: null, urlWarnings: [], validationError: null,
-  nowMode: false, nowOutside: false, mapHour: 0, scenario: createDefaultScenario(),
+  nowMode: false, nowOutside: false, mapHour: 0, selectedStop: null, scenario: createDefaultScenario(),
   initialize: (coverage, search) => {
     const parsed = parseUrl(search, coverage);
     const now = nowSelection(coverage);
@@ -83,6 +86,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
     const { filters } = get(); if (filters) set({ filters: { ...filters, split } });
   },
   setMapHour: (hour) => { if (Number.isInteger(hour) && hour >= 0 && hour <= 23) set({ mapHour: hour, nowMode: false }); },
+  setSelectedStop: (selectedStop) => set({ selectedStop }),
   updateScenarioRule: (kind, patch) => set((state) => ({
     scenario: state.scenario.map((rule) => (rule.kind === kind ? { ...rule, ...patch, kind } : rule)),
   })),
