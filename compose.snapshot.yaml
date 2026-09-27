@@ -1,0 +1,4 @@
+services:
+  forecast:
+    volumes:
+      - ${FORECAST_SNAPSHOT_DIR:?set FORECAST_SNAPSHOT_DIR to a validated snapshot directory}:/app/artifacts/service:ro

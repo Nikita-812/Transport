@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "winner": "pooled_route_blend",
+  "target_wape_score": 0.8,
+  "quality_passed": true,
+  "protocol": "fixed-origin two-month forecasts; integer predictions; no refit within a slice",
+  "history_sha256": "ef9216427bdf6c893b686bd64d5cc3aca518d47db08ea05fe59e23e0c9616ca0",
+  "slices": {
+    "may-june": {
+      "cutoff": "2025-04-30",
+      "start": "2025-05-01",
+      "end": "2025-06-30",
+      "rows": 14640,
+      "absolute_error": 1630059.0,
+      "target_sum": 11555908,
+      "wape": 0.14105849579280139,
+      "wape_score": 0.8589415042071986,
+      "target_wape_score": 0.8,
+      "passed": true
+    },
+    "july-august": {
+      "cutoff": "2025-06-30",
+      "start": "2025-07-01",
+      "end": "2025-08-31",
+      "rows": 14880,
+      "absolute_error": 1802041.0,
+      "target_sum": 10717653,
+      "wape": 0.16813765103236689,
+      "wape_score": 0.8318623489676331,
+      "target_wape_score": 0.8,
+      "passed": true
+    },
+    "september-october": {
+      "cutoff": "2025-08-31",
+      "start": "2025-09-01",
+      "end": "2025-10-31",
+      "rows": 14640,
+      "absolute_error": 2041462.0,
+      "target_sum": 12754481,
+      "wape": 0.16005841398015333,
+      "wape_score": 0.8399415860198467,
+      "target_wape_score": 0.8,
+      "passed": true
+    }
+  }
+}

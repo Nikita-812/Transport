@@ -43,6 +43,30 @@ def write_snapshot(directory, corrupt=False):
 
 
 class ForecastApiTest(unittest.TestCase):
+    def test_bundled_production_snapshot_is_complete_and_verified(self):
+        import forecast_api
+
+        directory = Path(__file__).with_name("service_snapshot")
+        snapshot = forecast_api.load_snapshot(directory)
+        metadata = json.loads((directory / "metadata.json").read_text(encoding="utf-8"))
+        quality_bytes = (directory / "quality.json").read_bytes()
+        quality = json.loads(quality_bytes)
+
+        self.assertTrue(snapshot.quality_passed)
+        self.assertEqual(snapshot.serving_mode, "production")
+        self.assertEqual(len(snapshot.rows), 87600)
+        self.assertEqual((snapshot.coverage_start, snapshot.coverage_end), (date(2025, 11, 1), date(2026, 10, 31)))
+        self.assertEqual(metadata["quality_report_sha256"], hashlib.sha256(quality_bytes).hexdigest())
+        self.assertTrue(quality["quality_passed"])
+        self.assertEqual(set(quality["slices"]), {item[0] for item in pipeline.SLICES})
+        self.assertTrue(all(item["passed"] for item in quality["slices"].values()))
+        source_lines = (directory / "forecast.csv").read_bytes().splitlines(keepends=True)
+        expected_submission = source_lines[:1] + [
+            line for line in source_lines[1:]
+            if b"2025-11-01" <= line.split(b";", 2)[1] <= b"2025-12-31"
+        ]
+        self.assertEqual(snapshot.submission_csv_bytes, b"".join(expected_submission))
+
     def test_gzip_negotiation_preserves_csv_and_respects_q_zero(self):
         import forecast_api
 
