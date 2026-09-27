@@ -1,46 +1,27 @@
-import { Paper, ScrollArea, Stack, Tabs, Text, ThemeIcon, Title } from '@mantine/core';
+import { ScrollArea, Tabs } from '@mantine/core';
 import { IconCalendarTime, IconInfoCircle, IconLayoutDashboard, IconMap, IconTable, type Icon } from '@tabler/icons-react';
 import { isTabId, TABS, useUiStore, type TabId } from '../../state/store';
 import classes from './layout.module.css';
 import type { ForecastResults } from '../../hooks/useForecastSeries';
+import { useReadyHealth } from '../../hooks/useHealth';
 import type { ScenarioSeriesResult } from '../../hooks/useScenarioSeries';
 import { ForecastOverview } from '../kpi/ForecastOverview';
 import { LoadMap } from '../map/LoadMap';
 import { MapErrorBoundary } from '../map/MapErrorBoundary';
+import { ModelTab } from '../model/ModelTab';
+import { PlanningTab } from '../planning/PlanningTab';
 import { ForecastTable } from '../table/ForecastTable';
 
-const TAB_META: Record<TabId, { icon: Icon; placeholder: string }> = {
-  overview: { icon: IconLayoutDashboard, placeholder: 'Ключевые показатели, график динамики, профиль часа суток и тепловая карта «день недели × час».' },
-  map: { icon: IconMap, placeholder: 'Карта Москвы: линии маршрутов по прогнозной нагрузке, проигрывание суток, остановки и участки.' },
-  table: { icon: IconTable, placeholder: 'Таблица прогноза текущей детализации с итогом и выгрузкой в CSV.' },
-  planning: { icon: IconCalendarTime, placeholder: 'Требуемые рейсы и интервалы движения по прогнозу при редактируемых допущениях.' },
-  model: { icon: IconInfoCircle, placeholder: 'Модель и снимок, качество на проверке, область применимости, источники данных и ограничения.' },
+const TAB_ICONS: Record<TabId, Icon> = {
+  overview: IconLayoutDashboard,
+  map: IconMap,
+  table: IconTable,
+  planning: IconCalendarTime,
+  model: IconInfoCircle,
 };
 
-function Placeholder({ tab }: { tab: TabId }) {
-  const { icon: TabIcon, placeholder } = TAB_META[tab];
-  const label = TABS.find((item) => item.value === tab)?.label ?? '';
-  return (
-    <Paper withBorder radius="lg" p="xl" mt="md">
-      <Stack align="center" gap="sm" ta="center" py="xl">
-        <ThemeIcon size={48} radius="xl" variant="light" color="gray" aria-hidden>
-          <TabIcon size={26} stroke={1.6} />
-        </ThemeIcon>
-        <Title order={2} size="h3">
-          {label}
-        </Title>
-        <Text c="dimmed" maw={520}>
-          {placeholder}
-        </Text>
-        <Text size="sm" c="dimmed" fs="italic">
-          Раздел в разработке.
-        </Text>
-      </Stack>
-    </Paper>
-  );
-}
-
 export function DashboardTabs({ forecast, series }: { forecast: ForecastResults; series: ScenarioSeriesResult }) {
+  const health = useReadyHealth();
   const tab = useUiStore((state) => state.tab);
   const setTab = useUiStore((state) => state.setTab);
 
@@ -49,7 +30,7 @@ export function DashboardTabs({ forecast, series }: { forecast: ForecastResults;
       <ScrollArea type="auto" scrollbarSize={4} offsetScrollbars="x">
         <Tabs.List className={classes.tabsList} aria-label="Разделы дашборда">
           {TABS.map(({ value, label }) => {
-            const TabIcon = TAB_META[value].icon;
+            const TabIcon = TAB_ICONS[value];
             return (
               <Tabs.Tab key={value} value={value} className={classes.tab} leftSection={<TabIcon size={16} aria-hidden />}>
                 {label}
@@ -63,7 +44,8 @@ export function DashboardTabs({ forecast, series }: { forecast: ForecastResults;
           {value === 'overview' ? <ForecastOverview forecast={forecast} series={series} />
             : value === 'map' ? <MapErrorBoundary><LoadMap forecast={forecast} series={series} /></MapErrorBoundary>
               : value === 'table' ? <ForecastTable forecast={forecast} series={series} />
-                : <Placeholder tab={value} />}
+                : value === 'planning' ? <PlanningTab forecast={forecast} series={series} />
+                  : <ModelTab health={health} />}
         </Tabs.Panel>
       ))}
     </Tabs>

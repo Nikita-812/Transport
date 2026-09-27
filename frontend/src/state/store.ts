@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { isIsoDate, ROUTES, type Coverage, type RouteId } from '../api/types';
 import { validHours, type HourRange } from '../domain/aggregate';
 import { defaultGranularity, nowSelection, resolveRange, type Granularity, type Horizon } from '../domain/horizon';
+import { DEFAULT_ASSUMPTIONS, type PlanningAssumptions } from '../domain/planning';
 import { createDefaultScenario, type ScenarioKind, type ScenarioRule } from '../domain/scenario';
 import { parseUrl, type Filters } from './url';
 import type { TabId } from './tabs';
@@ -20,6 +21,8 @@ interface UiState {
   /** Остановка, открытая на карте (идентификатор кластера из `domain/stops.ts`). */
   selectedStop: string | null;
   scenario: ScenarioRule[];
+  /** Допущения выпуска: по D0 не сохраняются между перезагрузками и не попадают в URL. */
+  planning: PlanningAssumptions;
   initialize: (coverage: Coverage, search: string) => void;
   setTab: (tab: TabId) => void;
   setPanelOpen: (open: boolean) => void;
@@ -34,6 +37,7 @@ interface UiState {
   setSelectedStop: (id: string | null) => void;
   updateScenarioRule: (kind: ScenarioKind, patch: Partial<ScenarioRule>) => void;
   resetScenario: () => void;
+  setPlanningAssumptions: (assumptions: PlanningAssumptions) => void;
   goNow: () => void;
   tickNow: () => void;
   dismissWarnings: () => void;
@@ -43,6 +47,7 @@ interface UiState {
 export const useUiStore = create<UiState>()((set, get) => ({
   tab: 'overview', panelOpen: false, coverage: null, filters: null, urlWarnings: [], validationError: null,
   nowMode: false, nowOutside: false, mapHour: 0, selectedStop: null, scenario: createDefaultScenario(),
+  planning: DEFAULT_ASSUMPTIONS,
   initialize: (coverage, search) => {
     const parsed = parseUrl(search, coverage);
     const now = nowSelection(coverage);
@@ -91,6 +96,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
     scenario: state.scenario.map((rule) => (rule.kind === kind ? { ...rule, ...patch, kind } : rule)),
   })),
   resetScenario: () => set({ scenario: createDefaultScenario() }),
+  setPlanningAssumptions: (planning) => set({ planning }),
   goNow: () => {
     const { filters, coverage } = get(); if (!filters || !coverage) return;
     const now = nowSelection(coverage);
