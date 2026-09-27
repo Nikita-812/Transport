@@ -1,9 +1,39 @@
 // Справочник фактов о модели (design D13 и раздел design «Факты для вкладки „О модели“»).
 // Источник — README и accuracy.py в ветке main на 2026-09-27. Интерфейс только показывает эти
-// значения: он не пересчитывает метрики и ничего не добавляет от себя.
+// значения: он не пересчитывает метрики и ничего не добавляет от себя. Исключение одно — множители погоды:
+// их читает из `weather-effects.json`, чтобы не расходиться с пресетами «Сценария».
+
+import { formatDecimal } from '../domain/format';
+import { isConfirmed, measuredEffect, presetMultiplier, type WeatherCategory } from './weather-effects';
 
 /** README проекта: единственное, что показывается для неизвестной модели. */
 export const README_URL = 'https://github.com/Nikita-812/Transport#readme';
+
+/** Где измерено влияние погоды и чего измерение не покрывает. */
+const WEATHER_WHERE = 'измерено на вневыборочных срезах май–октябрь 2025, зимние условия не оценены';
+
+/** Множитель категории с интервалом или оговоркой; `null`, если категория не измерена. */
+function weatherPhrase(category: WeatherCategory, name: string): string | null {
+  const effect = measuredEffect(category);
+  if (!effect) return null;
+  const confidence = isConfirmed(effect)
+    ? `95% ДИ ${formatDecimal(effect.ci_low, 2)}–${formatDecimal(effect.ci_high, 2)}`
+    : 'интервал включает 1';
+  return `${name} ×${formatDecimal(presetMultiplier(effect), 2)} (${confidence})`;
+}
+
+/**
+ * Что измерено по архиву Open-Meteo. Числа берутся из `weather-effects.json`, поэтому эта
+ * строка и пресеты «Сценария» не могут разойтись.
+ */
+const WEATHER_MEASURED = ((): string => {
+  const phrases: string[] = [];
+  const rain = weatherPhrase('rain', 'дождь');
+  if (rain) phrases.push(rain);
+  const heat = weatherPhrase('heat_above_25', 'жара');
+  if (heat) phrases.push(heat);
+  return phrases.length === 0 ? WEATHER_WHERE : `${phrases.join(', ')}; ${WEATHER_WHERE}`;
+})();
 
 export interface MetricSlice {
   /** Срез проверки: «май–июнь», «ранние срезы вместе». */
@@ -96,7 +126,9 @@ export const NOT_INCLUDED: readonly CheckedIdea[] = [
     title: 'Погода',
     text: 'Архив Open-Meteo. С категориальным месяцем эффект +0,0002 (0,8437 → 0,8439) — несущественно. Без категориального '
       + 'месяца эффект +0,009, но такие конфигурации слабее в целом (0,843). В опытах использовалась фактическая архивная '
-      + 'погода, то есть идеальный прогноз; в эксплуатации нужен прогноз погоды на 1–10 дней.',
+      + 'погода, то есть идеальный прогноз; в эксплуатации нужен прогноз погоды на 1–10 дней. '
+      + 'Влияние на посадки измерено отдельно и взято в пресеты «Сценария», а не в модель: '
+      + `${WEATHER_MEASURED}.`,
     link: { title: 'Open-Meteo, архив погоды', url: 'https://open-meteo.com/en/docs/historical-weather-api' },
   },
   {
@@ -139,6 +171,7 @@ export const SOURCES: readonly DataSource[] = [
   { title: 'Постановление Правительства РФ от 04.10.2024 № 1335', url: 'https://government.ru/docs/all/155500/', purpose: 'Производственный календарь 2025 года' },
   { title: 'Постановление Правительства РФ от 24.09.2025 № 1466', url: 'https://government.ru/docs/all/161028/', purpose: 'Производственный календарь 2026 года' },
   { title: 'ТК РФ, статьи 95 и 112', url: 'https://pravo.gov.ru/proxy/ips/?docbody=&nd=102074279', purpose: 'Нерабочие праздничные и сокращённые предпраздничные дни' },
+  { title: 'Open-Meteo, архив погоды', url: 'https://open-meteo.com/en/docs/historical-weather-api', purpose: `Влияние погоды на посадки: ${WEATHER_MEASURED}` },
   { title: 'OpenStreetMap, ODbL', url: 'https://www.openstreetmap.org/copyright', purpose: 'Пути и остановки маршрутов 17, 25, 26, 28, 50; получено через Overpass API' },
   { title: 'Зеркало Overpass API', url: 'https://maps.mail.ru/osm/tools/overpass/', purpose: 'Выгрузка геометрии OpenStreetMap' },
   { title: 'Тайлы OpenStreetMap', url: 'https://operations.osmfoundation.org/policies/tiles/', purpose: 'Подложка карты нагрузки' },
@@ -148,7 +181,7 @@ export const SOURCES: readonly DataSource[] = [
 /** Ограничения решения. */
 export const LIMITATIONS: readonly string[] = [
   'Нет прогноза по остановкам: сумма маршрутов — не посадки на остановке.',
-  'Погода и события — только сценарные допущения.',
+  'Погода и события в модель не входят: это сценарные множители, и зимние условия среди них не измерены.',
   'Годовой горизонт не валидирован.',
   'Снимок диагностический по внутреннему порогу команды.',
   'Геометрия OpenStreetMap актуальна на дату выгрузки.',

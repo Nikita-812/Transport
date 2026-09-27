@@ -1,0 +1,91 @@
+{
+  "source_url": "https://open-meteo.com/en/docs/historical-weather-api",
+  "period": {
+    "start": "2025-05-01",
+    "end": "2025-10-31",
+    "slices": [
+      {
+        "name": "may-june",
+        "train_through": "2025-04-30",
+        "start": "2025-05-01",
+        "end": "2025-06-30"
+      },
+      {
+        "name": "july-august",
+        "train_through": "2025-06-30",
+        "start": "2025-07-01",
+        "end": "2025-08-31"
+      },
+      {
+        "name": "september-october",
+        "train_through": "2025-08-31",
+        "start": "2025-09-01",
+        "end": "2025-10-31"
+      }
+    ]
+  },
+  "model": "pooled_route_blend",
+  "method": "For each fixed-origin slice, sum actual and raw out-of-sample predictions by weather category; divide the category actual/prediction ratio by the no-precipitation ratio from the same slice; pool slices using category forecast volume.",
+  "bootstrap": {
+    "unit": "day, resampled independently within each slice",
+    "iterations": 10000,
+    "confidence": 0.95,
+    "seed": 42
+  },
+  "effects": [
+    {
+      "category": "no_precipitation",
+      "label_ru": "Без осадков (база)",
+      "multiplier": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "hours": 3570,
+      "enough_data": true
+    },
+    {
+      "category": "rain",
+      "label_ru": "Дождь (> 0,2 мм/ч)",
+      "multiplier": 0.931495,
+      "ci_low": 0.896262,
+      "ci_high": 0.966772,
+      "hours": 363,
+      "enough_data": true
+    },
+    {
+      "category": "snowfall",
+      "label_ru": "Снегопад",
+      "multiplier": 0.928312,
+      "ci_low": 0.795773,
+      "ci_high": 1.130698,
+      "hours": 11,
+      "enough_data": false
+    },
+    {
+      "category": "frost_below_minus_10",
+      "label_ru": "Мороз ниже −10 °C",
+      "multiplier": null,
+      "ci_low": null,
+      "ci_high": null,
+      "hours": 0,
+      "enough_data": false
+    },
+    {
+      "category": "frost_below_minus_20",
+      "label_ru": "Мороз ниже −20 °C",
+      "multiplier": null,
+      "ci_low": null,
+      "ci_high": null,
+      "hours": 0,
+      "enough_data": false
+    },
+    {
+      "category": "heat_above_25",
+      "label_ru": "Жара выше +25 °C",
+      "multiplier": 0.979875,
+      "ci_low": 0.958655,
+      "ci_high": 1.003842,
+      "hours": 315,
+      "enough_data": true
+    }
+  ]
+}

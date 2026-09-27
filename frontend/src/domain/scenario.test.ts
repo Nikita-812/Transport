@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { RouteSeries } from './series';
-import { applyScenario, createDefaultScenario, type ScenarioRule } from './scenario';
+import {
+  applyScenario, createDefaultScenario, DEFAULT_WEATHER_PRESET, WEATHER_PRESETS, type ScenarioRule,
+} from './scenario';
 
 function constant(route: 1 | 17, start: string, days: number, value = 100): RouteSeries {
   return { route, start, days, values: new Float64Array(days * 24).fill(value) };
@@ -17,6 +19,64 @@ function rule(partial: Partial<ScenarioRule> & Pick<ScenarioRule, 'kind' | 'mult
     ...partial,
   };
 }
+
+describe('погодные пресеты', () => {
+  function preset(id: string) {
+    const found = WEATHER_PRESETS.find((item) => item.id === id);
+    if (!found) throw new Error(`в списке нет пресета ${id}`);
+    return found;
+  }
+
+  it('пять пресетов в порядке от базы, первый — значение по умолчанию', () => {
+    expect(WEATHER_PRESETS.map((item) => item.id)).toEqual(['clear', 'rain', 'snow', 'frost', 'heat']);
+    expect(WEATHER_PRESETS[0]).toBe(DEFAULT_WEATHER_PRESET);
+  });
+
+  it('Ясно — база 1,00: часы без осадков, к которым нормированы остальные', () => {
+    expect(preset('clear')).toEqual({
+      id: 'clear', name: 'Ясно', multiplier: 1, basis: 'base',
+      note: 'база измерения: часы без осадков',
+    });
+  });
+
+  it('Дождь — 0,93 по измерению 2025 года с интервалом 0,90–0,97', () => {
+    expect(preset('rain')).toEqual({
+      id: 'rain', name: 'Дождь (более 0,2 мм/ч)', multiplier: 0.93, basis: 'measured',
+      note: 'измерено по данным 2025 г. (Open-Meteo), 95% ДИ 0,90–0,97',
+    });
+  });
+
+  it('Жара — 0,98, но интервал накрывает 1, поэтому эффект не подтверждён', () => {
+    expect(preset('heat')).toEqual({
+      id: 'heat', name: 'Жара (выше +25 °C)', multiplier: 0.98, basis: 'unconfirmed',
+      note: 'эффект статистически не подтверждён',
+    });
+  });
+
+  it('Снегопад 0,92 и мороз 0,90 остались экспертными: зимы в срезах нет', () => {
+    const expected = [['snow', 0.92], ['frost', 0.9]] as const;
+    for (const [id, multiplier] of expected) {
+      expect(preset(id).multiplier).toBe(multiplier);
+      expect(preset(id).basis).toBe('expert');
+      expect(preset(id).note).toBe('экспертное допущение: зимних дней в проверочных срезах нет');
+    }
+  });
+
+  it('каждый множитель кратен шагу полей «Сценария» 0,01 и лежит в диапазоне 0–3', () => {
+    for (const item of WEATHER_PRESETS) {
+      expect(item.multiplier * 100).toBeCloseTo(Math.round(item.multiplier * 100), 9);
+      expect(item.multiplier).toBeGreaterThanOrEqual(0);
+      expect(item.multiplier).toBeLessThanOrEqual(3);
+      expect(item.note.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('по умолчанию сценарий стоит на «Ясно», то есть ничего не меняет', () => {
+    const weather = createDefaultScenario().find((item) => item.kind === 'weather');
+    expect(weather?.name).toBe(DEFAULT_WEATHER_PRESET.name);
+    expect(weather?.multiplier).toBe(1);
+  });
+});
 
 describe('сценарные коэффициенты', () => {
   it('перемножает снегопад 0,92 и событие 1,30 без изменения базы', () => {

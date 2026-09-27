@@ -74,6 +74,25 @@ it('источники: постановления, ТК РФ, OpenStreetMap, Ov
   expect(hrefs).toContain('https://pravo.gov.ru/proxy/ips/?docbody=&nd=102074279');
   expect(hrefs).toContain('https://www.openstreetmap.org/copyright');
   expect(hrefs).toContain('https://operations.osmfoundation.org/policies/tiles/');
+  expect(hrefs).toContain('https://open-meteo.com/en/docs/historical-weather-api');
+});
+
+it('источник погоды говорит, что и где измерено и что не оценено', () => {
+  renderWithProviders(<ModelTab health={health('pooled_route_blend:1ad02854ca82')} />);
+  const section = screen.getByRole('region', { name: 'Источники данных' });
+  const row = within(section).getByRole('link', { name: /Open-Meteo/ }).closest('tr');
+  expect(row).not.toBeNull();
+  expect(row?.textContent).toContain('дождь ×0,93 (95% ДИ 0,90–0,97)');
+  expect(row?.textContent).toContain('жара ×0,98 (интервал включает 1)');
+  expect(row?.textContent).toContain('вневыборочных срезах май–октябрь 2025');
+  expect(row?.textContent).toContain('зимние условия не оценены');
+});
+
+it('«Проверено и не вошло»: измеренный множитель ушёл в пресеты, а не в модель', () => {
+  renderWithProviders(<ModelTab health={health('pooled_route_blend:1ad02854ca82')} />);
+  const section = screen.getByRole('region', { name: 'Проверено и не вошло в модель' });
+  expect(within(section).getByText(/взято в пресеты «Сценария», а не в модель/)).toBeInTheDocument();
+  expect(within(section).getByText(/дождь ×0,93/)).toBeInTheDocument();
 });
 
 it('ограничения перечислены в одном разделе, снимок описан как диагностический', () => {

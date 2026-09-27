@@ -5,7 +5,9 @@ import { DateInput } from '@mantine/dates';
 import { ROUTES, type Season } from '../../api/types';
 import { hourLabel } from '../../domain/aggregate';
 import { formatDecimal, SEASON_NAMES } from '../../domain/format';
-import { EVENT_PRESETS, WEATHER_PRESETS, type ScenarioKind, type ScenarioRule } from '../../domain/scenario';
+import {
+  DEFAULT_WEATHER_PRESET, EVENT_PRESETS, WEATHER_PRESETS, type ScenarioKind, type ScenarioRule,
+} from '../../domain/scenario';
 import { useUiStore } from '../../state/store';
 
 function MultiplierControl({ kind, value, disabled = false }: {
@@ -68,7 +70,7 @@ export function ScenarioPanel() {
   const season = ruleOf(scenario, 'season');
   const event = ruleOf(scenario, 'event');
   const selectedRoutes = event.routes === 'all' ? ROUTES.map(String) : event.routes.map(String);
-  const weatherPreset = WEATHER_PRESETS.find((item) => item.name === weather.name) ?? WEATHER_PRESETS[0];
+  const weatherPreset = WEATHER_PRESETS.find((item) => item.name === weather.name) ?? DEFAULT_WEATHER_PRESET;
   const eventPreset = EVENT_PRESETS.find((item) => item.name === event.name) ?? EVENT_PRESETS[0];
 
   return (
@@ -80,6 +82,7 @@ export function ScenarioPanel() {
 
       <NativeSelect
         label="Погода"
+        description={weatherPreset.note}
         value={weatherPreset.id}
         data={WEATHER_PRESETS.map((item) => ({ value: item.id, label: `${item.name} · ${formatDecimal(item.multiplier, 2)}` }))}
         onChange={(change) => {
@@ -181,8 +184,10 @@ export function ScenarioPanel() {
         </Group>
       )}
 
-      <Alert color="blue" title="Экспертное допущение">
-        Модель на погоде и событиях не обучена. Коэффициенты задаёт пользователь.
+      <Alert color="blue" title="Откуда коэффициенты">
+        Модель на погоде и событиях не обучена. Множители дождя и жары измерены отдельно, по архиву
+        Open-Meteo на её вневыборочных прогнозах за май–октябрь 2025 года; снегопад, мороз, сезон и событие —
+        экспертные допущения. Любой коэффициент задаётся вручную.
       </Alert>
       <Text size="sm" fw={600}>прогноз = база × коэффициенты</Text>
     </Stack>

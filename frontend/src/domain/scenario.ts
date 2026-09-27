@@ -1,15 +1,64 @@
 import type { IsoDate, RouteId, Season } from '../api/types';
+import {
+  isConfirmed, measuredEffect, presetMultiplier, WEATHER_EFFECTS, type MeasuredEffect,
+} from '../data/weather-effects';
 import type { HourRange } from './aggregate';
 import { addDays, season as seasonOf } from './dates';
+import { formatDecimal } from './format';
 import type { RouteSeries } from './series';
 
-export const WEATHER_PRESETS = [
-  { id: 'clear', name: 'Ясно', multiplier: 1 },
-  { id: 'rain', name: 'Дождь', multiplier: 0.95 },
-  { id: 'snow', name: 'Снегопад', multiplier: 0.92 },
-  { id: 'frost', name: 'Сильный мороз (ниже −20 °C)', multiplier: 0.9 },
-  { id: 'heat', name: 'Жара (выше +30 °C)', multiplier: 0.95 },
-] as const;
+/** На чём держится множитель пресета погоды. */
+export type WeatherBasis = 'base' | 'measured' | 'unconfirmed' | 'expert';
+
+export interface WeatherPreset {
+  id: string;
+  name: string;
+  multiplier: number;
+  basis: WeatherBasis;
+  /** Подпись под выбором погоды. */
+  note: string;
+}
+
+const MEASURED_YEAR = WEATHER_EFFECTS.period.start.slice(0, 4);
+const NO_WINTER_NOTE = 'экспертное допущение: зимних дней в проверочных срезах нет';
+
+/**
+ * Пресет по измерению из `weather-effects.json`, а если его нет — по прежнему экспертному
+ * значению. Множитель и границы интервала округлены до шага полей «Сценария» — 0,01.
+ */
+function weatherPreset(id: string, name: string, effect: MeasuredEffect | null, expert: number): WeatherPreset {
+  if (!effect) return { id, name, multiplier: expert, basis: 'expert', note: NO_WINTER_NOTE };
+  if (!isConfirmed(effect)) {
+    return {
+      id, name, multiplier: presetMultiplier(effect), basis: 'unconfirmed',
+      note: 'эффект статистически не подтверждён',
+    };
+  }
+  return {
+    id, name, multiplier: presetMultiplier(effect), basis: 'measured',
+    note: `измерено по данным ${MEASURED_YEAR}\u00a0г. (Open-Meteo), 95% ДИ `
+      + `${formatDecimal(effect.ci_low, 2)}–${formatDecimal(effect.ci_high, 2)}`,
+  };
+}
+
+/** База измерения и значение по умолчанию: часы без осадков, к которым нормированы остальные. */
+export const DEFAULT_WEATHER_PRESET: WeatherPreset = {
+  id: 'clear', name: 'Ясно', multiplier: 1, basis: 'base',
+  note: 'база измерения: часы без осадков',
+};
+
+/**
+ * Дождь и жара измерены на вневыборочных срезах май–октябрь 2025 года. У снегопада в них 11 часов, у
+ * мороза — ни одного, поэтому `enough_data` у них ложно и пресеты остаются прежними экспертными
+ * значениями. Пороги в названиях — те же, что у категорий измерения.
+ */
+export const WEATHER_PRESETS: readonly WeatherPreset[] = [
+  DEFAULT_WEATHER_PRESET,
+  weatherPreset('rain', 'Дождь (более 0,2 мм/ч)', measuredEffect('rain'), 0.95),
+  weatherPreset('snow', 'Снегопад', measuredEffect('snowfall'), 0.92),
+  weatherPreset('frost', 'Сильный мороз (ниже −20 °C)', measuredEffect('frost_below_minus_20'), 0.9),
+  weatherPreset('heat', 'Жара (выше +25 °C)', measuredEffect('heat_above_25'), 0.95),
+];
 
 export const EVENT_PRESETS = [
   { id: 'match-concert', name: 'Матч или концерт', multiplier: 1.3 },
@@ -35,7 +84,7 @@ export interface ScenarioRule {
 export function createDefaultScenario(): ScenarioRule[] {
   return [
     {
-      id: 'weather', kind: 'weather', name: WEATHER_PRESETS[0].name, multiplier: WEATHER_PRESETS[0].multiplier,
+      id: 'weather', kind: 'weather', name: DEFAULT_WEATHER_PRESET.name, multiplier: DEFAULT_WEATHER_PRESET.multiplier,
       routes: 'all', dates: null, hours: null, enabled: true,
     },
     {

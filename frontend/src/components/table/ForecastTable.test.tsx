@@ -149,4 +149,22 @@ describe('вкладка «Таблица»', () => {
       download.restore();
     }
   });
+
+  it('пресет погоды подписан тем, на чём держится его множитель', async () => {
+    window.history.replaceState(null, '', `/${PERIOD}`);
+    renderWithProviders(<App />);
+    const weather = await screen.findByLabelText('Погода');
+
+    expect(weather).toHaveAccessibleDescription('база измерения: часы без осадков');
+
+    await userEvent.selectOptions(weather, 'rain');
+    expect(weather).toHaveAccessibleDescription('измерено по данным 2025 г. (Open-Meteo), 95% ДИ 0,90–0,97');
+    expect(screen.getByRole('slider', { name: 'Коэффициент погоды' })).toHaveAttribute('aria-valuenow', '0.93');
+
+    await userEvent.selectOptions(weather, 'heat');
+    expect(weather).toHaveAccessibleDescription('эффект статистически не подтверждён');
+
+    await userEvent.selectOptions(weather, 'frost');
+    expect(weather).toHaveAccessibleDescription('экспертное допущение: зимних дней в проверочных срезах нет');
+  });
 });
