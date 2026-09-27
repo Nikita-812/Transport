@@ -184,7 +184,24 @@ def prepare(archive_path, output_dir, calendar_path=None):
     calendar = load_calendar(calendar_path)
     values = {}
     sources = []
-    with zipfile.ZipFile(archive_path) as archive:
+    class DirectorySource:
+        def __init__(self, root):
+            self.root = root
+
+        def read(self, member):
+            path = self.root / Path(member)
+            if not path.is_file():
+                raise KeyError(member)
+            return path.read_bytes()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+    source = DirectorySource(archive_path) if archive_path.is_dir() else zipfile.ZipFile(archive_path)
+    with source as archive:
         for member, start, end in LABEL_MEMBERS:
             part, source = read_labels(archive, member, start, end)
             values.update(part)

@@ -217,3 +217,17 @@ python3 artifacts/accuracy/readme-test/evaluate.py
 Локальные результаты, разбивки по маршрутам/месяцам/часам и хеши сохранены в `artifacts/accuracy/readme-test/results.json`. Там же `submission.csv`: прогноз ноября–декабря после обучения на январе–октябре, UTF-8, `;`, точный заголовок, 14 640 уникальных ключей в порядке `test_submission.csv`, неотрицательные целые прогнозы. SHA-256 принятого submission: `9e714226ecb2513d97fbf7968ecf2a79e435b7f5bb289307ba59edf77db82234`. Скрипт сверяет history с labels архива и проверяет сохранённые CSV. Сгенерированные артефакты исключены из Git; скрипты воспроизведения и исследовательские заметки сохранены в репозитории.
 
 Официальный WAPE-score ноября–декабря неизвестен: скрытый ground truth отсутствует. Значение baseline ≈0.48 относится к скрытому периоду и напрямую с локальными score не сравнивается. Этот запуск не изменяет quality gate и снимок веб-сервиса.
+
+## Windows benchmark
+
+Отдельный Windows-прогон выполнен на Ryzen/RTX 5070 Ti и сохранён без замены основного Mac/model-research контура. Полные условия, модельные метрики, хеши и ограничения приведены в [Windows benchmark report](docs/windows-benchmark-report.md).
+
+Устойчивый 15-минутный профиль суток прошёл при 100 offered RPS: 90 000/90 000 completed, 0 ошибок, 0 пропусков, 99.95 completed RPS и p95 11.86 мс. Устойчивые 200 RPS не подтверждены. Эти loopback-измерения Windows не подтверждают SLA на 2–4 vCPU/2–4 ГБ Linux.
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-windows.lock
+.\.venv\Scripts\python.exe -m unittest -v
+.\.venv\Scripts\python.exe -m pipeline prepare --archive dataset --output-dir data\processed
+.\.venv\Scripts\python.exe -m windows_experiments preflight --manifest configs\experiments.windows.json --data-dir data\processed --report artifacts\benchmark\preflight-windows.json
+```
