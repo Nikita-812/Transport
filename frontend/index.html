@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru" data-mantine-color-scheme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Прогноз посадок на 10 маршрутах московского трамвая по часам: карта нагрузки, сценарии и оценка выпуска." />
+    <meta name="color-scheme" content="light dark" />
+    <title>Прогноз пассажиропотока трамваев</title>
+    <!-- Встроенная иконка: сервис не раздаёт /favicon.ico, и без неё браузер получил бы 404. -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234263eb'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5h8M16 5v4'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3'/%3E%3Cpath d='M9 16h14M12 27l1.5-4M20 27l-1.5-4'/%3E%3C/g%3E%3C/svg%3E" />
+    <script>
+      // Тема до загрузки приложения, чтобы не мигал светлый фон (ключ совпадает с src/theme.ts).
+      try {
+        var scheme = window.localStorage.getItem('tram-dashboard:color-scheme');
+        if (scheme === 'dark' || scheme === 'light') {
+          document.documentElement.setAttribute('data-mantine-color-scheme', scheme);
+        }
+      } catch (error) {
+        // Хранилище недоступно — остаётся светлая тема по умолчанию.
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Для работы дашборда нужен JavaScript.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

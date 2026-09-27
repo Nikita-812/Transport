@@ -10,6 +10,7 @@ from unittest import mock
 from fastapi.testclient import TestClient
 
 import forecast_export
+import pipeline
 
 
 ROUTES = (1, 5, 7, 11, 12, 17, 25, 26, 28, 50)
@@ -258,23 +259,44 @@ class ForecastApiTest(unittest.TestCase):
 
 class QualityTest(unittest.TestCase):
     def test_quality_requires_absolute_wape_score(self):
+        bar = pipeline.TARGET_WAPE_SCORE
         original = {name: {"selected_wape_score": 0.8, "baseline_wape_score": 0.7} for name in (
             "may-june", "july-august", "september-october"
         )}
-        current = {name: {"wape_score": 0.9, "absolute_error": 10, "target_sum": 100} for name in original}
+        current = {name: {"wape_score": bar - 0.01, "absolute_error": 10, "target_sum": 100} for name in original}
         with self.assertRaisesRegex(ValueError, "absolute WAPE-score"):
             forecast_export.check_quality(current, original)
         for score in current.values():
-            score["wape_score"] = 0.95
+            score["wape_score"] = bar
         self.assertTrue(all(item["passed"] for item in forecast_export.check_quality(current, original).values()))
 
+    def test_one_failing_slice_blocks_the_whole_export(self):
+        bar = pipeline.TARGET_WAPE_SCORE
+        original = {name: {"selected_wape_score": 0.8, "baseline_wape_score": 0.7} for name in (
+            "may-june", "july-august", "september-october"
+        )}
+        current = {name: {"wape_score": bar + 0.05, "absolute_error": 10, "target_sum": 100} for name in original}
+        current["july-august"]["wape_score"] = bar - 0.001
+        with self.assertRaisesRegex(ValueError, "july-august"):
+            forecast_export.check_quality(current, original)
+
+    def test_accepted_model_slices_meet_the_bar(self):
+        # Измеренный pooled_route_blend, README «Проверка лучшего кандидата по правилам Archive README».
+        measured = {"may-june": 0.8609403086, "july-august": 0.8349930717, "september-october": 0.8399634607}
+        self.assertEqual(set(measured), {name for name, *_ in pipeline.SLICES})
+        self.assertTrue(all(score >= pipeline.TARGET_WAPE_SCORE for score in measured.values()))
+        # Порог не должен опуститься до baseline route x weekday x hour: он слабее модели на двух срезах.
+        baseline = {"may-june": 0.82669, "july-august": 0.77916, "september-october": 0.86230}
+        self.assertLess(min(baseline.values()), pipeline.TARGET_WAPE_SCORE)
+
     def test_diagnostic_quality_is_explicitly_not_production_quality(self):
-        original = {name: {"selected_wape_score": 0.9, "selected_absolute_error": 10,
+        original = {name: {"selected_wape_score": pipeline.TARGET_WAPE_SCORE + 0.05, "selected_absolute_error": 10,
                            "target_sum": 100, "baseline_wape_score": 0.8} for name in (
             "may-june", "july-august", "september-october"
         )}
         report = forecast_export.diagnostic_quality(original)
         self.assertFalse(any(item["passed"] for item in report.values()))
+        self.assertTrue(all(item["wape_score"] >= pipeline.TARGET_WAPE_SCORE for item in report.values()))
 
     def test_invalid_staged_export_preserves_existing_snapshot(self):
         with tempfile.TemporaryDirectory() as temporary:

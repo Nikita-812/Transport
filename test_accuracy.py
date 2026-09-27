@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import accuracy
+import pipeline
 
 
 def rows(days=70):
@@ -327,8 +328,10 @@ class AccuracyTest(unittest.TestCase):
         self.assertEqual(predictions, [100.0, 0.0])
 
     def test_target_requires_every_early_slice_and_score_rejects_mismatch(self):
-        self.assertFalse(accuracy.target_met([0.96, 0.94]))
-        self.assertTrue(accuracy.target_met([0.95, 0.96]))
+        bar = pipeline.TARGET_WAPE_SCORE
+        self.assertFalse(accuracy.target_met([bar + 0.01, bar - 0.01]))
+        self.assertTrue(accuracy.target_met([bar, bar + 0.01]))
+        self.assertFalse(accuracy.target_met([]))
         with self.assertRaisesRegex(ValueError, "count"):
             accuracy._score(rows(2), [100.0])
 

@@ -68,7 +68,7 @@ def original_scores(results, winner_name):
     return records
 
 
-def check_quality(current, original, target_wape_score=0.95, fail=True):
+def check_quality(current, original, target_wape_score=pipeline.TARGET_WAPE_SCORE, fail=True):
     expected = {item[0] for item in pipeline.SLICES}
     if set(current) != expected or set(original) != expected:
         raise ValueError("quality records must contain every validation slice")
@@ -137,11 +137,16 @@ def write_quality(output_dir, report):
 
 
 def diagnostic_quality(original):
-    return check_quality({
+    report = check_quality({
         name: {"wape_score": values["selected_wape_score"], "absolute_error": values["selected_absolute_error"],
                "target_sum": values["target_sum"]}
         for name, values in original.items()
     }, original, fail=False)
+    # A diagnostic export echoes the recorded scores instead of re-running the model, so it never claims
+    # the production bar was met, wherever TARGET_WAPE_SCORE sits. The scores stay in the report.
+    for item in report.values():
+        item["passed"] = False
+    return report
 
 
 def publish_snapshot(output_dir, future, predictions, metadata, reference=None):
@@ -263,12 +268,12 @@ def export(data_dir, freeze_path, results_path, output_dir, quality_only=False, 
     quality = {
         "created_at": datetime.now(timezone.utc).isoformat(), "history_sha256": sha256(history_path),
         "freeze_sha256": freeze["sha256"], "winner": winner["name"],
-        "target_wape_score": 0.95, "quality_passed": all(item["passed"] for item in slices.values()),
+        "target_wape_score": pipeline.TARGET_WAPE_SCORE, "quality_passed": all(item["passed"] for item in slices.values()),
         "serving_mode": "diagnostic" if diagnostic else "production", "slices": slices,
     }
     quality_path = write_quality(output_dir, quality)
     if not diagnostic and not quality["quality_passed"]:
-        raise ValueError("absolute WAPE-score is below 0.95; see " + str(quality_path))
+        raise ValueError(f"absolute WAPE-score is below {pipeline.TARGET_WAPE_SCORE:.2f}; see " + str(quality_path))
     if quality_only:
         return quality_path
     coverage_start, coverage_end = pipeline.FUTURE_START, horizon_end(pipeline.FUTURE_START, horizon)

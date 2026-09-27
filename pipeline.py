@@ -31,6 +31,13 @@ SLICES = (
     ("september-october", date(2025, 8, 31), date(2025, 9, 1), date(2025, 10, 31)),
 )
 
+# Team acceptance bar for a production export: absolute WAPE-score on every fixed slice in SLICES.
+# 0.80 is the lower edge of the jury's 0.80-0.88 band; the accepted pooled_route_blend measures
+# 0.8609 / 0.8350 / 0.8400 (README "Проверка лучшего кандидата по правилам Archive README").
+# It is not a floor that only a good model clears: the route x weekday x hour baseline scores
+# 0.82669 / 0.77916 / 0.86230, so the bar is weak on two slices out of three.
+TARGET_WAPE_SCORE = 0.80
+
 
 def dates(start, end):
     current = start
