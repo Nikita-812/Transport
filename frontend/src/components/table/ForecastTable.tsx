@@ -7,7 +7,8 @@ import { aggregate, viewRows, type ViewRow } from '../../domain/aggregate';
 import { buildCsv, csvFileName } from '../../domain/csv';
 import { formatBucketTitle, formatDecimal, formatInteger } from '../../domain/format';
 import type { Granularity } from '../../domain/horizon';
-import { useReadySeries, type ForecastResults } from '../../hooks/useForecastSeries';
+import type { ForecastResults } from '../../hooks/useForecastSeries';
+import type { ScenarioSeriesResult } from '../../hooks/useScenarioSeries';
 import { useUiStore } from '../../state/store';
 import { ForecastStatus } from '../common/ForecastStatus';
 
@@ -100,22 +101,24 @@ function downloadCsv(fileName: string, content: string): void {
 }
 
 /** Вкладка «Таблица»: строки текущей детализации, итог и выгрузка текущего вида в CSV. */
-export function ForecastTable({ forecast }: { forecast: ForecastResults }) {
+export function ForecastTable({ forecast, series }: { forecast: ForecastResults; series: ScenarioSeriesResult }) {
   const filters = useUiStore((state) => state.filters);
   const coverage = useUiStore((state) => state.coverage);
-  const series = useReadySeries(forecast);
   const byRoute = filters?.split === 'routes';
   const granularity = filters?.granularity ?? 'day';
   const hours = filters?.hours;
   const rows = useMemo(
-    () => (hours ? viewRows(aggregate(series, granularity, hours, byRoute)) : []),
-    [series, granularity, hours, byRoute],
+    () => (hours ? viewRows(
+      aggregate(series.base, granularity, hours, byRoute),
+      aggregate(series.adjusted, granularity, hours, byRoute),
+    ) : []),
+    [series.base, series.adjusted, granularity, hours, byRoute],
   );
   if (!filters || !coverage) return null;
 
   const fileName = csvFileName(filters.horizon, filters.start, filters.end);
   const viewKey = [granularity, filters.split, filters.start, filters.end, filters.hours.from, filters.hours.to,
-    series.map((item) => item.route).join('.')].join(':');
+    series.base.map((item) => item.route).join('.'), series.active].join(':');
 
   return (
     <Stack gap="md" mt="lg">

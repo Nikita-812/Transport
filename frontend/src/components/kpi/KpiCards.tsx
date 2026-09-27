@@ -2,12 +2,34 @@ import { Paper, SimpleGrid, Stack, Text } from '@mantine/core';
 import { hourLabel, type Kpis } from '../../domain/aggregate';
 import { formatInteger, formatIsoDate } from '../../domain/format';
 
-export function KpiCards({ kpis }: { kpis: Kpis }) {
+const percentFormat = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: 'exceptZero' });
+
+function delta(value: number, base: number): string {
+  return `${percentFormat.format(base === 0 ? 0 : ((value - base) / base) * 100)} %`;
+}
+
+export function KpiCards({ kpis, baseKpis = kpis }: { kpis: Kpis; baseKpis?: Kpis }) {
   const cards = [
-    { label: 'Всего посадок', value: formatInteger(kpis.total), detail: 'За выбранные даты и часы' },
-    { label: 'Пиковый час', value: kpis.peak ? formatInteger(kpis.peak.prediction) : '—', detail: kpis.peak ? `${formatIsoDate(kpis.peak.date)} · ${hourLabel(kpis.peak.hour)}` : 'Нет данных' },
-    { label: 'Самый загруженный маршрут', value: kpis.busiestRoute ? `№ ${kpis.busiestRoute.route}` : '—', detail: kpis.busiestRoute ? `${formatInteger(kpis.busiestRoute.prediction)} посадок` : 'Нет данных' },
-    { label: 'В среднем за час', value: formatInteger(kpis.averagePerHour), detail: 'Сумма выбранных маршрутов' },
+    {
+      label: 'Всего посадок', value: formatInteger(kpis.total),
+      detail: `База: ${formatInteger(baseKpis.total)} · Δ ${delta(kpis.total, baseKpis.total)}`,
+    },
+    {
+      label: 'Пиковый час', value: kpis.peak ? formatInteger(kpis.peak.prediction) : '—',
+      detail: kpis.peak && baseKpis.peak
+        ? `${formatIsoDate(kpis.peak.date)} · ${hourLabel(kpis.peak.hour)} · база: ${formatInteger(baseKpis.peak.prediction)} · Δ ${delta(kpis.peak.prediction, baseKpis.peak.prediction)}`
+        : 'Нет данных',
+    },
+    {
+      label: 'Самый загруженный маршрут', value: kpis.busiestRoute ? `№ ${kpis.busiestRoute.route}` : '—',
+      detail: kpis.busiestRoute && baseKpis.busiestRoute
+        ? `Прогноз: ${formatInteger(kpis.busiestRoute.prediction)} · база: № ${baseKpis.busiestRoute.route}, ${formatInteger(baseKpis.busiestRoute.prediction)} · Δ ${delta(kpis.busiestRoute.prediction, baseKpis.busiestRoute.prediction)}`
+        : 'Нет данных',
+    },
+    {
+      label: 'В среднем за час', value: formatInteger(kpis.averagePerHour),
+      detail: `База: ${formatInteger(baseKpis.averagePerHour)} · Δ ${delta(kpis.averagePerHour, baseKpis.averagePerHour)}`,
+    },
   ];
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="md" aria-label="Ключевые показатели">

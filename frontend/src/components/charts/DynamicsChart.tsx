@@ -26,44 +26,55 @@ function tooltipContent(data: DynamicsData, params: unknown): string {
   return head + rows.join('');
 }
 
-function dynamicsOption(data: DynamicsData, scheme: ColorScheme): ChartOption {
+function dynamicsOption(base: DynamicsData, scenario: DynamicsData | undefined, scheme: ColorScheme): ChartOption {
   const palette = chartPalette(scheme);
   const axis = axisStyle(scheme);
-  const area = data.lines.length === 1 && data.lines[0]?.route === null;
+  const area = base.lines.length === 1 && base.lines[0]?.route === null;
+  const active = scenario !== undefined;
+  const baseSeries = base.lines.map((line, position) => ({
+    type: 'line' as const,
+    name: active ? `${line.name} · база` : line.name,
+    data: line.values,
+    color: line.color,
+    showSymbol: false,
+    sampling: 'lttb' as const,
+    lineStyle: { width: 2, type: 'solid' as const },
+    ...(area ? { areaStyle: { opacity: 0.12 } } : {}),
+    ...(position === 0
+      ? {
+        markArea: {
+          silent: true,
+          itemStyle: { color: palette.mark },
+          label: { show: true, position: 'insideTop' as const, rotate: 90, color: palette.muted, fontSize: 10, width: 90, overflow: 'truncate' as const, distance: 6 },
+          data: base.marks.map((mark): [{ name: string; xAxis: number }, { xAxis: number }] => [
+            { name: mark.name, xAxis: mark.from - 0.5 }, { xAxis: mark.to + 0.5 },
+          ]),
+        },
+      }
+      : {}),
+  }));
+  const scenarioSeries = (scenario?.lines ?? []).map((line) => ({
+    type: 'line' as const,
+    name: `${line.name} · сценарий`,
+    data: line.values,
+    color: line.color,
+    showSymbol: false,
+    sampling: 'lttb' as const,
+    lineStyle: { width: 2.5, type: 'dashed' as const },
+  }));
   return {
-    grid: { left: 4, right: 12, top: 36, bottom: data.zoom ? 58 : 8, containLabel: true },
+    grid: { left: 4, right: 12, top: 36, bottom: base.zoom ? 58 : 8, containLabel: true },
     legend: { ...legendStyle(scheme), type: 'scroll', top: 0, left: 0 },
-    tooltip: { ...tooltipStyle(scheme), trigger: 'axis', formatter: (params: unknown) => tooltipContent(data, params) },
-    xAxis: { type: 'category', data: data.labels, boundaryGap: true, ...axis },
+    tooltip: { ...tooltipStyle(scheme), trigger: 'axis', formatter: (params: unknown) => tooltipContent(base, params) },
+    xAxis: { type: 'category', data: base.labels, boundaryGap: true, ...axis },
     yAxis: { type: 'value', ...axis, axisLabel: { ...axis.axisLabel, formatter: (value: number) => formatCompact(value) } },
-    ...(data.zoom ? { dataZoom: [{ type: 'slider', height: 22, bottom: 12, borderColor: palette.axis, textStyle: { color: palette.muted } }, { type: 'inside' }] } : {}),
-    series: data.lines.map((line, position) => ({
-      type: 'line' as const,
-      name: line.name,
-      data: line.values,
-      color: line.color,
-      // Длинные ряды: точки не рисуем, прореживание lttb сохраняет форму (design D10).
-      showSymbol: false,
-      sampling: 'lttb' as const,
-      lineStyle: { width: 2 },
-      ...(area ? { areaStyle: { opacity: 0.18 } } : {}),
-      // Полосы праздников принадлежат первой серии, иначе ECharts нарисует их столько раз, сколько линий.
-      ...(position === 0
-        ? {
-          markArea: {
-            silent: true,
-            itemStyle: { color: palette.mark },
-            label: { show: true, position: 'insideTop' as const, rotate: 90, color: palette.muted, fontSize: 10, width: 90, overflow: 'truncate' as const, distance: 6 },
-            data: data.marks.map((mark) => [{ name: mark.name, xAxis: mark.from - 0.5 }, { xAxis: mark.to + 0.5 }]),
-          },
-        }
-        : {}),
-    })),
+    ...(base.zoom ? { dataZoom: [{ type: 'slider', height: 22, bottom: 12, borderColor: palette.axis, textStyle: { color: palette.muted } }, { type: 'inside' }] } : {}),
+    series: [...baseSeries, ...scenarioSeries],
   };
 }
 
-export function DynamicsChart({ data, height = 320 }: { data: DynamicsData; height?: number }) {
+export function DynamicsChart({ base, scenario, height = 320 }: { base: DynamicsData; scenario?: DynamicsData; height?: number }) {
   const scheme = useComputedColorScheme('light');
-  const option = useMemo(() => dynamicsOption(data, scheme), [data, scheme]);
+  const option = useMemo(() => dynamicsOption(base, scenario, scheme), [base, scenario, scheme]);
   return <EChart option={option} height={height} ariaLabel="График динамики прогноза посадок" />;
 }

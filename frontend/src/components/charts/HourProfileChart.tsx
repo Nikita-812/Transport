@@ -22,27 +22,39 @@ function tooltipContent(params: unknown): string {
   }).join('');
 }
 
-function hourProfileOption(data: HourProfileData, scheme: ColorScheme): ChartOption {
+function hourProfileOption(base: HourProfileData, scenario: HourProfileData | undefined, scheme: ColorScheme): ChartOption {
   const axis = axisStyle(scheme);
+  const active = scenario !== undefined;
   return {
     grid: { left: 4, right: 12, top: 36, bottom: 8, containLabel: true },
     legend: { ...legendStyle(scheme), type: 'scroll', top: 0, left: 0 },
     tooltip: { ...tooltipStyle(scheme), trigger: 'axis', formatter: (params: unknown) => tooltipContent(params) },
-    xAxis: { type: 'category', data: data.labels, boundaryGap: true, ...axis },
+    xAxis: { type: 'category', data: base.labels, boundaryGap: true, ...axis },
     yAxis: { type: 'value', ...axis, axisLabel: { ...axis.axisLabel, formatter: (value: number) => formatCompact(value) } },
-    series: data.lines.map((line) => ({
-      type: 'bar' as const,
-      name: line.name,
-      data: line.values,
-      color: line.color,
-      barMaxWidth: 18,
-    })),
+    series: [
+      ...base.lines.map((line) => ({
+        type: 'line' as const,
+        name: active ? `${line.name} · база` : line.name,
+        data: line.values,
+        color: line.color,
+        showSymbol: false,
+        lineStyle: { width: 2, type: 'solid' as const },
+      })),
+      ...(scenario?.lines ?? []).map((line) => ({
+        type: 'line' as const,
+        name: `${line.name} · сценарий`,
+        data: line.values,
+        color: line.color,
+        showSymbol: false,
+        lineStyle: { width: 2.5, type: 'dashed' as const },
+      })),
+    ],
   };
 }
 
-/** Профиль «час суток»: столбцы среднего за день по каждому часу. */
-export function HourProfileChart({ data, height = 260 }: { data: HourProfileData; height?: number }) {
+/** Профиль «час суток»: сплошная база и пунктир сценария по каждому часу. */
+export function HourProfileChart({ base, scenario, height = 260 }: { base: HourProfileData; scenario?: HourProfileData; height?: number }) {
   const scheme = useComputedColorScheme('light');
-  const option = useMemo(() => hourProfileOption(data, scheme), [data, scheme]);
+  const option = useMemo(() => hourProfileOption(base, scenario, scheme), [base, scenario, scheme]);
   return <EChart option={option} height={height} ariaLabel="Профиль посадок по часам суток, в среднем за день" />;
 }

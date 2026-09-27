@@ -25,14 +25,25 @@ function ChartCard({ title, hint, children }: { title: string; hint: string; chi
 }
 
 /** Три графика «Обзора»: динамика, профиль часа суток и тепловая карта «день недели × час». */
-export function OverviewCharts({ series, filters }: { series: readonly RouteSeries[]; filters: Filters }) {
+export function OverviewCharts({ baseSeries, scenarioSeries, scenarioActive, filters }: {
+  baseSeries: readonly RouteSeries[];
+  scenarioSeries: readonly RouteSeries[];
+  scenarioActive: boolean;
+  filters: Filters;
+}) {
   const scheme = useComputedColorScheme('light');
   const totalColor = chartPalette(scheme).total;
   const { hours, split, granularity, start, end } = filters;
   const lineOptions = useMemo(() => ({ hours, split, totalColor }), [hours, split, totalColor]);
-  const dynamics = useMemo(() => buildDynamics(series, granularity, { start, end }, lineOptions), [series, granularity, start, end, lineOptions]);
-  const hourProfile = useMemo(() => buildHourProfile(series, lineOptions), [series, lineOptions]);
-  const heatmap = useMemo(() => buildHeatmap(series, hours), [series, hours]);
+  const baseDynamics = useMemo(() => buildDynamics(baseSeries, granularity, { start, end }, lineOptions), [baseSeries, granularity, start, end, lineOptions]);
+  const scenarioDynamics = useMemo(() => scenarioActive
+    ? buildDynamics(scenarioSeries, granularity, { start, end }, lineOptions)
+    : undefined, [scenarioSeries, scenarioActive, granularity, start, end, lineOptions]);
+  const baseHourProfile = useMemo(() => buildHourProfile(baseSeries, lineOptions), [baseSeries, lineOptions]);
+  const scenarioHourProfile = useMemo(() => scenarioActive
+    ? buildHourProfile(scenarioSeries, lineOptions)
+    : undefined, [scenarioSeries, scenarioActive, lineOptions]);
+  const heatmap = useMemo(() => buildHeatmap(scenarioSeries, hours), [scenarioSeries, hours]);
   const days = daysInclusive(start, end);
   const splitHint = split === 'routes' ? 'линии по маршрутам' : 'сумма выбранных маршрутов';
 
@@ -40,18 +51,18 @@ export function OverviewCharts({ series, filters }: { series: readonly RouteSeri
     <Stack gap="md">
       <ChartCard
         title="Динамика посадок"
-        hint={`Корзины по ${GRANULARITY_NAMES[granularity]}, ${splitHint}. Полосы — праздники и перенесённые выходные.${dynamics.zoom ? ' Ряд длинный: масштаб меняется ползунком под графиком.' : ''}`}
+        hint={`Корзины по ${GRANULARITY_NAMES[granularity]}, ${splitHint}. База — сплошная линия${scenarioActive ? ', сценарий — пунктир' : ''}. Полосы — праздники и перенесённые выходные.${baseDynamics.zoom ? ' Ряд длинный: масштаб меняется ползунком под графиком.' : ''}`}
       >
-        <DynamicsChart data={dynamics} />
+        <DynamicsChart base={baseDynamics} scenario={scenarioDynamics} />
       </ChartCard>
       <Grid gap="md">
         <Grid.Col span={{ base: 12, lg: 6 }}>
-          <ChartCard title="Час суток" hint={`В среднем за день, ${splitHint}. Период: ${formatDays(days)}.`}>
-            <HourProfileChart data={hourProfile} />
+          <ChartCard title="Час суток" hint={`В среднем за день, ${splitHint}. База — сплошная линия${scenarioActive ? ', сценарий — пунктир' : ''}. Период: ${formatDays(days)}.`}>
+            <HourProfileChart base={baseHourProfile} scenario={scenarioHourProfile} />
           </ChartCard>
         </Grid.Col>
         <Grid.Col span={{ base: 12, lg: 6 }}>
-          <ChartCard title="День недели × час" hint="В среднем за день, сумма выбранных маршрутов. Понедельник сверху.">
+          <ChartCard title="День недели × час" hint={`В среднем за день, сумма выбранных маршрутов после сценария. Понедельник сверху.${scenarioActive ? ' Сценарий активен.' : ''}`}>
             <WeekdayHourHeatmap data={heatmap} />
           </ChartCard>
         </Grid.Col>

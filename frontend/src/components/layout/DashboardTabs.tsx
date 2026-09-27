@@ -3,6 +3,7 @@ import { IconCalendarTime, IconInfoCircle, IconLayoutDashboard, IconMap, IconTab
 import { isTabId, TABS, useUiStore, type TabId } from '../../state/store';
 import classes from './layout.module.css';
 import type { ForecastResults } from '../../hooks/useForecastSeries';
+import type { ScenarioSeriesResult } from '../../hooks/useScenarioSeries';
 import { ForecastOverview } from '../kpi/ForecastOverview';
 import { ForecastTable } from '../table/ForecastTable';
 
@@ -37,7 +38,7 @@ function Placeholder({ tab }: { tab: TabId }) {
   );
 }
 
-export function DashboardTabs({ forecast }: { forecast: ForecastResults }) {
+export function DashboardTabs({ forecast, series }: { forecast: ForecastResults; series: ScenarioSeriesResult }) {
   const tab = useUiStore((state) => state.tab);
   const setTab = useUiStore((state) => state.setTab);
 
@@ -57,8 +58,8 @@ export function DashboardTabs({ forecast }: { forecast: ForecastResults }) {
       </ScrollArea>
       {TABS.map(({ value }) => (
         <Tabs.Panel key={value} value={value}>
-          {value === 'overview' ? <ForecastOverview forecast={forecast} />
-            : value === 'table' ? <ForecastTable forecast={forecast} />
+          {value === 'overview' ? <ForecastOverview forecast={forecast} series={series} />
+            : value === 'table' ? <ForecastTable forecast={forecast} series={series} />
               : <Placeholder tab={value} />}
         </Tabs.Panel>
       ))}

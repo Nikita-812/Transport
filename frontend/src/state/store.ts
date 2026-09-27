@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { isIsoDate, ROUTES, type Coverage, type RouteId } from '../api/types';
 import { validHours, type HourRange } from '../domain/aggregate';
 import { defaultGranularity, nowSelection, resolveRange, type Granularity, type Horizon } from '../domain/horizon';
+import { createDefaultScenario, type ScenarioKind, type ScenarioRule } from '../domain/scenario';
 import { parseUrl, type Filters } from './url';
 import type { TabId } from './tabs';
 export { TABS, isTabId, type TabId } from './tabs';
@@ -16,6 +17,7 @@ interface UiState {
   nowMode: boolean;
   nowOutside: boolean;
   mapHour: number;
+  scenario: ScenarioRule[];
   initialize: (coverage: Coverage, search: string) => void;
   setTab: (tab: TabId) => void;
   setPanelOpen: (open: boolean) => void;
@@ -27,6 +29,8 @@ interface UiState {
   setGranularity: (granularity: Granularity) => void;
   setSplit: (split: Filters['split']) => void;
   setMapHour: (hour: number) => void;
+  updateScenarioRule: (kind: ScenarioKind, patch: Partial<ScenarioRule>) => void;
+  resetScenario: () => void;
   goNow: () => void;
   tickNow: () => void;
   dismissWarnings: () => void;
@@ -35,7 +39,7 @@ interface UiState {
 
 export const useUiStore = create<UiState>()((set, get) => ({
   tab: 'overview', panelOpen: false, coverage: null, filters: null, urlWarnings: [], validationError: null,
-  nowMode: false, nowOutside: false, mapHour: 0,
+  nowMode: false, nowOutside: false, mapHour: 0, scenario: createDefaultScenario(),
   initialize: (coverage, search) => {
     const parsed = parseUrl(search, coverage);
     const now = nowSelection(coverage);
@@ -79,6 +83,10 @@ export const useUiStore = create<UiState>()((set, get) => ({
     const { filters } = get(); if (filters) set({ filters: { ...filters, split } });
   },
   setMapHour: (hour) => { if (Number.isInteger(hour) && hour >= 0 && hour <= 23) set({ mapHour: hour, nowMode: false }); },
+  updateScenarioRule: (kind, patch) => set((state) => ({
+    scenario: state.scenario.map((rule) => (rule.kind === kind ? { ...rule, ...patch, kind } : rule)),
+  })),
+  resetScenario: () => set({ scenario: createDefaultScenario() }),
   goNow: () => {
     const { filters, coverage } = get(); if (!filters || !coverage) return;
     const now = nowSelection(coverage);

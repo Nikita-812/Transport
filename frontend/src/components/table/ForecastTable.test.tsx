@@ -1,10 +1,12 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import { getInstanceByDom } from 'echarts/core';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../../App';
 import { setApiTransport } from '../../api/client';
 import { CSV_BOM } from '../../domain/csv';
 import { formatInteger } from '../../domain/format';
+import { createDefaultScenario } from '../../domain/scenario';
 import fixture from '../../test/fixtures/forecast-real.json';
 import { fixtureResponse, requestUrl } from '../../test/forecast';
 import { renderWithProviders } from '../../test/render';
@@ -32,7 +34,7 @@ function captureDownload() {
 
 beforeEach(() => {
   window.history.replaceState(null, '', `/${PERIOD}&tab=table`);
-  useUiStore.setState({ filters: null, tab: 'overview', panelOpen: false });
+  useUiStore.setState({ filters: null, tab: 'overview', panelOpen: false, scenario: createDefaultScenario() });
   setApiTransport(null);
   vi.stubGlobal('fetch', vi.fn<typeof fetch>((input) => Promise.resolve(fixtureResponse(requestUrl(input)))));
 });
@@ -102,5 +104,49 @@ describe('вкладка «Таблица»', () => {
     renderWithProviders(<App />);
     await screen.findByRole('row', { name: 'Итого' });
     expect(screen.getByRole('link', { name: /forecasts.csv/ })).toHaveAttribute('href', '/forecasts.csv');
+  });
+
+  it('ползунок сценария локально обновляет KPI, графики, тепловую карту, таблицу и CSV', async () => {
+    const download = captureDownload();
+    try {
+      window.history.replaceState(null, '', `/${PERIOD}`);
+      renderWithProviders(<App />);
+      const totalCard = await screen.findByRole('region', { name: 'Всего посадок' });
+      const fetchCount = vi.mocked(fetch).mock.calls.length;
+
+      await userEvent.selectOptions(screen.getByLabelText('Погода'), 'snow');
+      expect(within(totalCard).getByText(formatInteger(total * 0.92), { collapseWhitespace: false })).toBeInTheDocument();
+      expect(within(totalCard).getByText(/^База:/).textContent?.replace(/\s/g, ' '))
+        .toContain(`База: ${formatInteger(total)}`.replace(/\s/g, ' '));
+
+      const dynamicsElement = screen.getByRole('img', { name: 'График динамики прогноза посадок' });
+      await waitFor(() => {
+        const names = (getInstanceByDom(dynamicsElement)?.getOption().series as { name?: string }[]).map((item) => item.name);
+        expect(names).toEqual(['Маршрут 1 · база', 'Маршрут 17 · база', 'Маршрут 1 · сценарий', 'Маршрут 17 · сценарий']);
+      });
+      expect(screen.getByRole('img', { name: /Тепловая карта/i }).closest('section')).toHaveTextContent('Сценарий активен');
+
+      const slider = screen.getByRole('slider', { name: 'Коэффициент погоды' });
+      slider.focus();
+      await userEvent.keyboard('{ArrowUp}');
+      expect(slider).toHaveAttribute('aria-valuenow', '0.93');
+      expect(within(totalCard).getByText(formatInteger(total * 0.93), { collapseWhitespace: false })).toBeInTheDocument();
+      expect(vi.mocked(fetch)).toHaveBeenCalledTimes(fetchCount);
+
+      await userEvent.click(screen.getByRole('tab', { name: 'Таблица' }));
+      const footer = await screen.findByRole('row', { name: 'Итого' });
+      expect(within(footer).getByText('0,930')).toBeInTheDocument();
+      expect(within(footer).getByText(formatInteger(total * 0.93), { collapseWhitespace: false })).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Скачать CSV' }));
+      const content = new TextDecoder('utf-8', { ignoreBOM: true }).decode(await download.blobs[0]!.arrayBuffer());
+      const lines = content.slice(CSV_BOM.length).trimEnd().split('\r\n');
+      expect(lines[0]).toBe('date;route;base_prediction;coefficient;prediction');
+      expect(lines.slice(1).every((line) => line.split(';')[3] === '0.9300')).toBe(true);
+      expect(lines.slice(1).reduce((sum, line) => sum + Number(line.split(';')[4]), 0)).toBeCloseTo(total * 0.93, 1);
+      expect(vi.mocked(fetch)).toHaveBeenCalledTimes(fetchCount);
+    } finally {
+      download.restore();
+    }
   });
 });
