@@ -60,8 +60,20 @@ def snapshot_directory(directory):
                 or any(c not in "0123456789abcdef" for c in target.name)):
             raise ValueError("snapshot current pointer is invalid")
         return target
+    if current.is_file():
+        try:
+            generation = current.read_text(encoding="ascii").strip()
+        except (OSError, UnicodeError) as error:
+            raise ValueError("snapshot current pointer is invalid") from error
+        if (len(generation) != 64
+                or any(c not in "0123456789abcdef" for c in generation)):
+            raise ValueError("snapshot current pointer is invalid")
+        target = directory / ".snapshots" / generation
+        if not target.is_dir():
+            raise ValueError("snapshot current pointer is broken")
+        return target.resolve()
     if current.exists():
-        raise ValueError("snapshot current pointer must be a symlink")
+        raise ValueError("snapshot current pointer must be a symlink or pointer file")
     return directory
 
 

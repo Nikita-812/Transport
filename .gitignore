@@ -9,3 +9,12 @@ artifacts/service/
 artifacts/service-diagnostic/
 artifacts/service-diagnostic-year/
 artifacts/http-*.json
+dataset/
+.venv/
+artifacts/experiments/
+artifacts/benchmark/
+artifacts/models/
+submission.csv
+*.joblib
+*.pt
+catboost_info/

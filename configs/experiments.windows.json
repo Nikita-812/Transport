@@ -1,0 +1,48 @@
+{
+  "experiment_id": "tram-2025-windows-benchmark",
+  "revision": 2,
+  "seed": 42,
+  "data_hashes": {
+    "history": "ef9216427bdf6c893b686bd64d5cc3aca518d47db08ea05fe59e23e0c9616ca0",
+    "future": "4b40a4e449fad8291525bd0cf9b0b799f3266ecc2b3cb3402fa2240ae971def5",
+    "calendar": "82d182195715e17b069d2198a567309ef073f457cebd16bece8c198e0980f89c"
+  },
+  "start_utc": "2026-09-27T05:10:00Z",
+  "deadline_utc": "2026-09-27T13:10:00Z",
+  "phases": [
+    {"name": "preflight", "ends_minute": 30},
+    {"name": "screen", "ends_minute": 120},
+    {"name": "tune", "ends_minute": 270},
+    {"name": "repeat", "ends_minute": 330},
+    {"name": "freeze", "ends_minute": 390},
+    {"name": "final_check", "ends_minute": 450},
+    {"name": "export", "ends_minute": 480}
+  ],
+  "devices": ["windows", "mac"],
+  "runs": [
+    {"run_id": "baseline-seasonal-s42", "device": "windows", "phase": "screen", "family": "baseline", "backend": "cpu", "features": "calendar", "parameters": {"kind": "seasonal"}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "window-mean-8w-s42", "device": "windows", "phase": "screen", "family": "window", "backend": "cpu", "features": "profiles", "parameters": {"kind": "mean", "weeks": 8}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "ridge-a1-s42", "device": "windows", "phase": "screen", "family": "linear", "backend": "cpu", "features": "profiles", "parameters": {"kind": "ridge", "alpha": 1.0}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "poisson-a1-s42", "device": "windows", "phase": "screen", "family": "linear", "backend": "cpu", "features": "profiles", "parameters": {"kind": "poisson", "alpha": 1.0}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "extra-trees-300-s42", "device": "windows", "phase": "screen", "family": "forest", "backend": "cpu", "features": "profiles", "parameters": {"kind": "extra_trees", "n_estimators": 300, "max_depth": 16}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "random-forest-300-s42", "device": "windows", "phase": "screen", "family": "forest", "backend": "cpu", "features": "profiles", "parameters": {"kind": "random_forest", "n_estimators": 300, "max_depth": 16}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "hist-gbdt-l1-s42", "device": "windows", "phase": "screen", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "hist_gradient_boosting", "loss": "absolute_error", "max_iter": 500}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "xgboost-cpu-s42", "device": "windows", "phase": "screen", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "xgboost", "objective": "reg:absoluteerror", "n_estimators": 500}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "catboost-gpu-s42", "device": "windows", "phase": "screen", "family": "boosting", "backend": "gpu", "features": "profiles", "parameters": {"kind": "catboost", "loss_function": "MAE", "iterations": 500}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "mlp-gpu-s42", "device": "windows", "phase": "screen", "family": "neural", "backend": "gpu", "features": "profiles", "parameters": {"kind": "mlp", "width": 64, "layers": 2, "epochs": 20}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "dlinear-gpu-s42", "device": "windows", "phase": "screen", "family": "direct", "backend": "gpu", "features": "series", "parameters": {"kind": "dlinear", "input_days": 56, "epochs": 20}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "hist-l1-300-s42", "device": "windows", "phase": "tune", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "hist_gradient_boosting", "loss": "absolute_error", "max_iter": 300}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "hist-poisson-300-s42", "device": "windows", "phase": "tune", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "hist_gradient_boosting", "loss": "poisson", "max_iter": 300}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "xgb-d4-lr03-500-s42", "device": "windows", "phase": "tune", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "xgboost", "objective": "reg:absoluteerror", "n_estimators": 500, "max_depth": 4, "learning_rate": 0.03}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "xgb-d8-lr03-500-s42", "device": "windows", "phase": "tune", "family": "boosting", "backend": "gpu", "features": "profiles", "parameters": {"kind": "xgboost", "objective": "reg:absoluteerror", "n_estimators": 500, "max_depth": 8, "learning_rate": 0.03}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "extra-d8-300-s42", "device": "windows", "phase": "tune", "family": "forest", "backend": "cpu", "features": "profiles", "parameters": {"kind": "extra_trees", "n_estimators": 300, "max_depth": 8}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "forest-d8-300-s42", "device": "windows", "phase": "tune", "family": "forest", "backend": "cpu", "features": "profiles", "parameters": {"kind": "random_forest", "n_estimators": 300, "max_depth": 8}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "window-median-4w-s42", "device": "windows", "phase": "tune", "family": "window", "backend": "cpu", "features": "profiles", "parameters": {"kind": "median", "weeks": 4}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "window-mean-12w-s42", "device": "windows", "phase": "tune", "family": "window", "backend": "cpu", "features": "profiles", "parameters": {"kind": "mean", "weeks": 12}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "window-decay-12w-s42", "device": "windows", "phase": "tune", "family": "window", "backend": "cpu", "features": "profiles", "parameters": {"kind": "decay", "weeks": 12, "decay": 0.85}, "seed": 42, "slices": ["may-june", "july-august"]},
+    {"run_id": "xgb-d4-lr03-500-s43", "device": "windows", "phase": "repeat", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "xgboost", "objective": "reg:absoluteerror", "n_estimators": 500, "max_depth": 4, "learning_rate": 0.03}, "seed": 43, "slices": ["may-june", "july-august"]},
+    {"run_id": "xgb-d4-lr03-500-s44", "device": "windows", "phase": "repeat", "family": "boosting", "backend": "cpu", "features": "profiles", "parameters": {"kind": "xgboost", "objective": "reg:absoluteerror", "n_estimators": 500, "max_depth": 4, "learning_rate": 0.03}, "seed": 44, "slices": ["may-june", "july-august"]},
+    {"run_id": "extra-d8-300-s43", "device": "windows", "phase": "repeat", "family": "forest", "backend": "cpu", "features": "profiles", "parameters": {"kind": "extra_trees", "n_estimators": 300, "max_depth": 8}, "seed": 43, "slices": ["may-june", "july-august"]},
+    {"run_id": "extra-d8-300-s44", "device": "windows", "phase": "repeat", "family": "forest", "backend": "cpu", "features": "profiles", "parameters": {"kind": "extra_trees", "n_estimators": 300, "max_depth": 8}, "seed": 44, "slices": ["may-june", "july-august"]}
+  ]
+}
