@@ -1,0 +1,17 @@
+/* Глобальные правила поверх стилей Mantine. */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  /* Содержимое не должно давать горизонтальную прокрутку страницы даже на 375 px (spec dashboard-shell). */
+  overflow-x: hidden;
+}
+
+/* Видимый фокус для всех интерактивных элементов, в том числе нативных. */
+:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}

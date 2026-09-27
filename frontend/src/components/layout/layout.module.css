@@ -1,0 +1,76 @@
+/* Панель фильтров выдвижная ниже 1024 px (spec dashboard-shell); совпадает с breakpoint навбара в Dashboard.tsx. */
+.burger {
+  @media (min-width: 64em) {
+    display: none;
+  }
+}
+
+.title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* На телефоне полное название в две строки вместо обрезки. */
+  @media (max-width: 30em) {
+    font-size: var(--mantine-font-size-md);
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
+
+.version {
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabsList {
+  flex-wrap: nowrap;
+}
+
+.tab {
+  white-space: nowrap;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Бейдж статуса снимка: обычный регистр, без обрезки текста. */
+.snapshotBadge {
+  text-transform: none;
+  cursor: pointer;
+}
+
+.snapshotBadgeLabel {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* На телефоне бейдж — только значок; название остаётся в aria-label кнопки и в раскрытии. */
+@media (max-width: 30em) {
+  .snapshotBadge {
+    padding-inline: 7px;
+  }
+
+  .snapshotBadgeLabel {
+    display: none;
+  }
+
+  .snapshotBadgeSection {
+    margin: 0;
+  }
+}
+
+.coverageCompact {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 30em) {
+    display: none;
+  }
+}

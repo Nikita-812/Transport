@@ -1,0 +1,57 @@
+{
+  "name": "tram-forecast-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Дашборд прогноза пассажиропотока московских трамваев; собирается в ../static/index.html",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "dev:mock": "vite --mode mock",
+    "typecheck": "tsc -b",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsc -b && vite build && node scripts/verify_single_file.mjs dist/index.html && node scripts/publish_static.mjs && node scripts/verify_single_file.mjs ../static/index.html"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.6.3",
+    "@mantine/dates": "^9.6.3",
+    "@mantine/hooks": "^9.6.3",
+    "@mantine/notifications": "^9.6.3",
+    "@tabler/icons-react": "^3.48.0",
+    "@tanstack/react-query": "^5.104.0",
+    "dayjs": "^1.11.23",
+    "echarts": "^6.1.0",
+    "maplibre-gl": "^6.11.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^24.19.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.1",
+    "postcss": "^8.5.28",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vite": "^8.3.1",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^5.0.2"
+  }
+}
