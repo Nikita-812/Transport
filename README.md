@@ -93,6 +93,23 @@ python3 -m experiments --data-dir data/processed --output-dir artifacts/macbook-
 
 ## Точность моделей
 
+### Calendar/weather model v2
+
+Эксперимент с представлением месяца, особыми днями и погодой запускается отдельно и не меняет
+принятую конфигурацию в `accuracy.py`:
+
+```bash
+python download_weather.py --output data/weather/moscow_2025_hourly.csv
+python -m model_v2 --data-dir data/processed --weather data/weather/moscow_2025_hourly.csv --output-dir artifacts/model-v2/run-1
+```
+
+Источник — [Open-Meteo Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api),
+Москва (55.7558, 37.6173), часовой пояс Europe/Moscow. Используются `temperature_2m`,
+`precipitation`, `rain`, `snowfall`, `snow_depth`, `weather_code`. Архивная погода за
+ноябрь–декабрь является **идеальным прогнозом** и завышает реалистичность эксперимента: в
+эксплуатации прогноз погоды доступен примерно на 1–10 дней, для горизонта месяц/год нужна
+климатическая норма. Итоги конкретного запуска находятся в `artifacts/model-v2/report.md`.
+
 Технический порог production-экспорта — абсолютный WAPE-score не ниже `0.95` на каждом фиксированном срезе. Принятый окончательный вариант `pooled_route_blend` ниже этого порога; production snapshot пока не создаётся. Исследования завершены решением команды, дальнейшее сравнение отложено до внешних метрик через Git. Историческое правило остановки после двух неулучшающих кандидатов было отменено и не является приёмкой.
 
 | Модель | Май–июнь | Июль–август | Combined |
