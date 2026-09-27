@@ -4,11 +4,12 @@ import { isTabId, TABS, useUiStore, type TabId } from '../../state/store';
 import classes from './layout.module.css';
 import type { ForecastResults } from '../../hooks/useForecastSeries';
 import { ForecastOverview } from '../kpi/ForecastOverview';
+import { ForecastTable } from '../table/ForecastTable';
 
 const TAB_META: Record<TabId, { icon: Icon; placeholder: string }> = {
-  overview: { icon: IconLayoutDashboard, placeholder: 'Ключевые показатели, график динамики, тепловая карта «день недели × час» и рейтинг маршрутов.' },
+  overview: { icon: IconLayoutDashboard, placeholder: 'Ключевые показатели, график динамики, профиль часа суток и тепловая карта «день недели × час».' },
   map: { icon: IconMap, placeholder: 'Карта Москвы: линии маршрутов по прогнозной нагрузке, проигрывание суток, остановки и участки.' },
-  table: { icon: IconTable, placeholder: 'Таблица прогноза текущей детализации с сортировкой, итогом и выгрузкой в CSV.' },
+  table: { icon: IconTable, placeholder: 'Таблица прогноза текущей детализации с итогом и выгрузкой в CSV.' },
   planning: { icon: IconCalendarTime, placeholder: 'Требуемые рейсы и интервалы движения по прогнозу при редактируемых допущениях.' },
   model: { icon: IconInfoCircle, placeholder: 'Модель и снимок, качество на проверке, область применимости, источники данных и ограничения.' },
 };
@@ -56,7 +57,9 @@ export function DashboardTabs({ forecast }: { forecast: ForecastResults }) {
       </ScrollArea>
       {TABS.map(({ value }) => (
         <Tabs.Panel key={value} value={value}>
-          {value === 'overview' ? <ForecastOverview forecast={forecast} /> : <Placeholder tab={value} />}
+          {value === 'overview' ? <ForecastOverview forecast={forecast} />
+            : value === 'table' ? <ForecastTable forecast={forecast} />
+              : <Placeholder tab={value} />}
         </Tabs.Panel>
       ))}
     </Tabs>

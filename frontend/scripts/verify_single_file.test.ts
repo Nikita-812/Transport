@@ -32,6 +32,11 @@ describe('verifyHtml', () => {
     expect(verifyHtml(page('', '<style>.a{background:url("./tile.png")}</style>'))[0]).toContain('CSS url(./tile.png)');
   });
 
+  it('вызовы вида getDataURL(e) и revokeObjectURL(n) в JS не считаются ссылками', () => {
+    const script = '<script type="module">const u=URL.createObjectURL(b);URL.revokeObjectURL(u);return this.getDataURL(e)</script>';
+    expect(verifyHtml(page('', script))).toEqual([]);
+  });
+
   it('невстроенный чанк в JS', () => {
     expect(verifyHtml(page('', '<script type="module">import("./assets/chunk-abc.js")</script>'))[0]).toContain('файл сборки');
   });

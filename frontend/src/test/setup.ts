@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+import { installCanvasStub } from './canvas';
 
 afterEach(() => {
   cleanup();
@@ -36,3 +37,5 @@ if (!('ResizeObserver' in window)) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
+
+installCanvasStub();

@@ -92,7 +92,9 @@ export function verifyHtml(html, sizeBytes = Buffer.byteLength(html, 'utf8')) {
   }
 
   // url(...) во встроенных стилях и style-атрибутах: разрешены только data: и blob:.
-  for (const match of html.matchAll(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi)) {
+  // Перед `url(` не должно быть части имени: в минифицированном JS есть вызовы `getDataURL(e)`
+  // и `URL.revokeObjectURL(n)` — это функции, а не ссылки на файлы.
+  for (const match of html.matchAll(/(?<![\w$.])url\(\s*(['"]?)([^'")]+)\1\s*\)/gi)) {
     const value = match[2] ?? '';
     if (isInlineValue(value) || value.startsWith('%23')) continue;
     // Строки JS вида url(${...}) или url(" + x + ") — не ссылки на файлы.

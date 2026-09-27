@@ -1,4 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { forecastRaw } from '../api/client';
 import type { RouteId } from '../api/types';
 import type { DateRange } from '../domain/horizon';
@@ -22,3 +23,8 @@ export function useForecastSeries(version: string, routes: readonly RouteId[], r
 }
 
 export type ForecastResults = ReturnType<typeof useForecastSeries>;
+
+/** Загруженные ряды в порядке запроса; маршрут с ошибкой в расчёты не попадает. */
+export function useReadySeries(forecast: ForecastResults) {
+  return useMemo(() => forecast.flatMap((item) => (item.isSuccess ? [item.data] : [])), [forecast]);
+}

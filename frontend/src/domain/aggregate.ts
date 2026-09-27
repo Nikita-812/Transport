@@ -66,6 +66,46 @@ export function profile(series: readonly RouteSeries[], kind: 'hourOfDay' | 'wee
   });
 }
 
+export interface WeekdayHourCell { weekday: number; hour: number; prediction: number }
+
+/**
+ * Тепловая карта «день недели × час», среднее за день: сумма выбранных маршрутов делится на число
+ * дней этого дня недели в диапазоне. Пары без наблюдений не возвращаются, а не считаются нулём.
+ */
+export function weekdayHourProfile(series: readonly RouteSeries[], hours: HourRange = ALL_HOURS): WeekdayHourCell[] {
+  const cells = new Map<string, WeekdayHourCell>();
+  const dates = new Set<string>();
+  visit(series, hours, (_route, date, hour, value) => {
+    dates.add(date);
+    const key = `${weekday(date)}:${hour}`;
+    const cell = cells.get(key) ?? { weekday: weekday(date), hour, prediction: 0 };
+    cell.prediction += value;
+    cells.set(key, cell);
+  });
+  const days = new Map<number, number>();
+  for (const date of dates) days.set(weekday(date), (days.get(weekday(date)) ?? 0) + 1);
+  return [...cells.values()]
+    .map((cell) => ({ ...cell, prediction: cell.prediction / days.get(cell.weekday)! }))
+    .sort((a, b) => a.weekday - b.weekday || a.hour - b.hour);
+}
+
+/** Строка текущего вида: база, коэффициент сценария и итог (spec forecast-exploration, «Table»). */
+export interface ViewRow { key: string; route: RouteId | null; base: number; coefficient: number; prediction: number }
+
+/**
+ * Сводит базовые и сценарные суммы одних корзин в строки таблицы и выгрузки.
+ * До раздела 4 сценария нет: `adjusted` опущен, коэффициент равен 1.
+ * Коэффициент корзины — отношение итога к базе, то есть средний коэффициент, взвешенный по посадкам.
+ */
+export function viewRows(base: readonly AggregateRow[], adjusted?: readonly AggregateRow[]): ViewRow[] {
+  const id = (row: AggregateRow) => `${row.route ?? 'all'}:${row.key}`;
+  const byId = new Map((adjusted ?? []).map((row) => [id(row), row.prediction]));
+  return base.map((row) => {
+    const prediction = byId.get(id(row)) ?? row.prediction;
+    return { key: row.key, route: row.route, base: row.prediction, coefficient: row.prediction === 0 ? 1 : prediction / row.prediction, prediction };
+  });
+}
+
 export interface Kpis {
   total: number;
   averagePerHour: number;

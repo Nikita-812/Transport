@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseAggregateForecast, parseRawForecast } from '../api/types';
 import fixture from '../test/fixtures/forecast-real.json';
 import { normalizeSeries, type RouteSeries } from './series';
-import { aggregate, calculateKpis, profile } from './aggregate';
+import { aggregate, calculateKpis, profile, viewRows, weekdayHourProfile } from './aggregate';
 
 const manual: RouteSeries[] = [
   { route: 1, start: '2025-11-02', days: 2, values: new Float64Array(48).fill(1) },
@@ -44,6 +44,35 @@ describe('агрегаты без округления', () => {
     const data = [{ ...manual[0]!, start: '2025-12-31' }];
     expect(aggregate(data, 'week')).toEqual([{ key: '2026-W01', route: null, prediction: 48 }]);
     expect(aggregate(data, 'season')).toEqual([{ key: 'winter', route: null, prediction: 48 }]);
+  });
+});
+
+describe('тепловая карта и строки вида', () => {
+  it('«день недели × час» делит на число дней этого дня недели, а не на число маршрутов', () => {
+    const cells = weekdayHourProfile(manual, { from: 7, to: 8 });
+    // 2025-11-02 — воскресенье (6), 2025-11-03 — понедельник (0); в каждом дне по одному разу.
+    expect(cells).toEqual([
+      { weekday: 0, hour: 7, prediction: 3 }, { weekday: 0, hour: 8, prediction: 3 },
+      { weekday: 6, hour: 7, prediction: 3 }, { weekday: 6, hour: 8, prediction: 3 },
+    ]);
+    const nineDays = [{ ...manual[0]!, days: 9, values: new Float64Array(9 * 24).fill(2) }];
+    const monday = weekdayHourProfile(nineDays, { from: 8, to: 8 }).filter((cell) => cell.weekday === 0);
+    expect(monday).toEqual([{ weekday: 0, hour: 8, prediction: 2 }]);
+    expect(weekdayHourProfile([])).toEqual([]);
+  });
+
+  it('строки вида: без сценария коэффициент равен 1, со сценарием — отношение к базе', () => {
+    const base = aggregate(manual, 'day', { from: 7, to: 8 }, true);
+    expect(viewRows(base).map((row) => [row.route, row.base, row.coefficient, row.prediction])).toEqual([
+      [1, 2, 1, 2], [1, 2, 1, 2], [17, 4, 1, 4], [17, 4, 1, 4],
+    ]);
+    const adjusted = base.map((row) => ({ ...row, prediction: row.prediction * 1.5 }));
+    expect(viewRows(base, adjusted).map((row) => [row.coefficient, row.prediction])).toEqual([
+      [1.5, 3], [1.5, 3], [1.5, 6], [1.5, 6],
+    ]);
+    expect(viewRows([{ key: '2025-11-02', route: null, prediction: 0 }])[0]).toEqual(
+      { key: '2025-11-02', route: null, base: 0, coefficient: 1, prediction: 0 },
+    );
   });
 });
 
