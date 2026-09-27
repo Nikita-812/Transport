@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "rows": 87600,
+  "routes": [
+    1,
+    5,
+    7,
+    11,
+    12,
+    17,
+    25,
+    26,
+    28,
+    50
+  ],
+  "coverage": {
+    "start": "2025-11-01",
+    "end": "2026-10-31"
+  },
+  "submission_coverage": {
+    "start": "2025-11-01",
+    "end": "2025-12-31"
+  },
+  "horizon": "year",
+  "winner": "pooled_route_blend",
+  "accuracy": "fixed-origin quality gate passed; dates after 2025-12-31 are an unvalidated extension",
+  "quality_passed": true,
+  "serving_mode": "production",
+  "history_sha256": "ef9216427bdf6c893b686bd64d5cc3aca518d47db08ea05fe59e23e0c9616ca0",
+  "forecast_sha256": "4d0fe182549743d083b9deb579f42544dde7ab3f88538d2264ddf325bbb67f63",
+  "forecast_version": "pooled_route_blend:4d0fe1825497",
+  "reference_map_sha256": "7e50c247503ef1a0d270eec90540c6774253ef7785a47423cff4e85c58c92c2e",
+  "quality_report_sha256": "66435c7ed6e1f06af0c4d9c7314394550a4fc8acc1c892593baba57a7c12f6db"
+}

@@ -117,7 +117,10 @@ def load_snapshot(directory):
         raise ValueError("reference map sidecar is missing or has an invalid hash")
     reference_map = json.loads(reference_path.read_text(encoding="utf-8")) if reference_path.exists() else None
     if reference_map is not None and reference_map.get("forecast_available") is not False: raise ValueError("reference map must explicitly deny stop forecast availability")
-    submission_rows = [{"route": r, "date": d.isoformat(), "hour": h, "prediction": p} for r, d, h, p in rows if submission_start <= d <= submission_end]
+    # Preserve the source representation (for example integer ``3`` rather than
+    # parsed float ``3.0``) so the submission export keeps its reproducible hash.
+    submission_rows = [source for source, (_, day, _, _) in zip(source_rows, rows, strict=True)
+                       if submission_start <= day <= submission_end]
     submission_csv = csv_bytes if (submission_start, submission_end) == (coverage_start, coverage_end) else _csv(submission_rows)
     return Snapshot(metadata["forecast_version"], metadata["quality_passed"], metadata["serving_mode"], routes, coverage_start, coverage_end,
                     submission_start, submission_end, tuple(rows), {route: tuple(item for item in rows if item[0] == route) for route in routes},

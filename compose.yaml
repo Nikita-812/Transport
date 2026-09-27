@@ -5,8 +5,13 @@ services:
       - "8000:8000"
     environment:
       FORECAST_DIR: /app/artifacts/service
-    volumes:
-      - ${FORECAST_SNAPSHOT_DIR:-./artifacts/service}:/app/artifacts/service:ro
     cpus: 2
     mem_limit: 2g
     memswap_limit: 2g
+    init: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,urllib.request; data=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)); assert data['ready'] and data['quality_passed'] and data['serving_mode']=='production'"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s

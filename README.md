@@ -6,11 +6,11 @@
 
 **27 сентября 2026: исследования модели завершены. `pooled_route_blend` принят как окончательный вариант на текущий этап — до получения внешних метрик от участника команды через Git.** Новые кандидаты, подбор параметров и исследовательские прогоны остановлены. К выбору модели возвращаемся после анализа поступивших метрик.
 
-Зафиксирована конфигурация `POOLED_ROUTE_BLEND_CONFIG` в `accuracy.py`: среднее 50/50 общей и отдельных маршрутных моделей HistGradientBoosting, `random_state=42`. Финальный прогноз обучен на январе–октябре 2025 и покрывает ноябрь–декабрь. WAPE-score после округления: **84,8455%** на объединённых ранних срезах и **83,9963%** на сентябре–октябре. Официальная оценка ноября–декабря ещё неизвестна; заявленные ≈48% baseline относятся к этому скрытому периоду и напрямую с локальными оценками не сравниваются.
+Зафиксирована конфигурация `POOLED_ROUTE_BLEND_CONFIG` в `accuracy.py`: среднее 50/50 общей и отдельных маршрутных моделей HistGradientBoosting, `random_state=42`. Финальный прогноз обучен на январе–октябре 2025 и покрывает ноябрь–декабрь. Воспроизводимая проверка delivery-snapshot после округления дала WAPE-score **84,5911%** на объединённых ранних срезах и **83,9942%** на сентябре–октябре. Официальная оценка ноября–декабря ещё неизвестна; заявленные ≈48% baseline относятся к этому скрытому периоду и напрямую с локальными оценками не сравниваются.
 
-Результат этапа сохраняется в ветке экспериментов `codex/macbook-model-benchmark`; слияние в `main` пока не выполняется. Принятие модели фиксирует выбор команды и не равно production-приёмке: снимки остаются диагностическими, пока production-экспорт не запущен заново. Диагностический снимок сервиса по-прежнему использует прежний frozen winner, а финальный submission — выбранный `pooled_route_blend`.
+Принятый `pooled_route_blend` и диспетчерский дашборд слиты в `main`. Для поставки подготовлен годовой production snapshot: он заново проверен на трёх фиксированных временных срезах, встроен в Docker-образ и не требует датасета или ML-зависимостей при запуске.
 
-Локально доступны оба исходных архива: `train.zip` с сырыми событиями января–августа и `Archive (1).zip` с labels, событиями сентября–октября и примером submission. В Git архивы не добавляются. Реализованы воспроизводимая подготовка почасовых данных, модели для экспериментов, код экспорта готового снимка, FastAPI-сервис, статическая HTML-страница и Docker Compose. Диагностическая сборка, runtime и HTTP/UI-приёмка выполнены; production snapshot и его приёмка остаются заблокированными качественным порогом.
+Локально доступны оба исходных архива: `train.zip` с сырыми событиями января–августа и `Archive (1).zip` с labels, событиями сентября–октября и примером submission. В Git архивы не добавляются. Реализованы воспроизводимая подготовка почасовых данных, модели для экспериментов, FastAPI-сервис, статическая HTML-страница и самодостаточная Docker Compose-поставка.
 
 ## Данные
 
@@ -163,7 +163,7 @@ python -m model_v2 --data-dir data/processed --weather data/weather/moscow_2025_
 эксплуатации прогноз погоды доступен примерно на 1–10 дней, для горизонта месяц/год нужна
 климатическая норма. Итоги конкретного запуска находятся в `artifacts/model-v2/report.md`.
 
-Технический порог production-экспорта — абсолютный WAPE-score не ниже `0.80` на каждом фиксированном срезе (`pipeline.TARGET_WAPE_SCORE`). Принятый `pooled_route_blend` проходит его на всех трёх срезах: `0.8609` / `0.8350` / `0.8400`, самый узкий запас — `0.035`. Порог взят как нижняя граница полосы 0.80–0.88 в шкале жюри и слабее, чем кажется: baseline `route × weekday × hour` даёт `0.82669` / `0.77916` / `0.86230`, то есть сам проходит 0.80 на двух срезах из трёх. Снижение порога само по себе ничего не перевыпускает: снимки в `artifacts/service` и `artifacts/service-diagnostic` по-прежнему несут `serving_mode: diagnostic` и `quality_passed: false`. Чтобы появился production snapshot, нужно запустить `forecast_export` без `--diagnostic`, а для этого нужны `artifacts/macbook-benchmark/freeze.json` и `results.json` — в репозитории их нет, они создаются локально. Исследования завершены решением команды, дальнейшее сравнение отложено до внешних метрик через Git. Историческое правило остановки после двух неулучшающих кандидатов было отменено и не является приёмкой.
+Технический порог production-экспорта — абсолютный WAPE-score не ниже `0.80` на каждом фиксированном срезе (`pipeline.TARGET_WAPE_SCORE`). Перед сборкой поставки `build_service_snapshot.py` переобучает принятый `pooled_route_blend` только на прошлом каждого среза и блокирует публикацию при провале хотя бы одного среза. В комплекте `service_snapshot/quality.json` зафиксированы пересчитанные результаты `0.8589` / `0.8319` / `0.8399`; все три проходят порог. Прогноз после 31 декабря 2025 года является непроверенным расширением годового горизонта, что явно записано в метаданных.
 
 | Модель | Май–июнь | Июль–август | Combined |
 | --- | ---: | ---: | ---: |
@@ -195,23 +195,21 @@ python3 -m accuracy --variant per_route_device_density --output-dir artifacts/ac
 
 ## Веб-сервис прогнозов
 
-Код сервиса отдаёт готовый снимок без обучения при HTTP-запросе. `forecast_export` требует абсолютный WAPE-score не ниже `0.80` на каждом срезе. Оба снимка в репозитории — диагностические (`quality_passed: false`): они собраны до смены порога и нуждаются в перевыпуске. Диагностический экспорт повторяет записанные метрики вместо пересчёта модели, поэтому он никогда не ставит `quality_passed: true`, каким бы ни был порог.
+Код сервиса отдаёт готовый снимок без обучения при HTTP-запросе. Каталог `service_snapshot/` входит в репозиторий и Docker-образ: 87 600 строк на период 01.11.2025–31.10.2026, `serving_mode: production`, `quality_passed: true`. `quality.json` содержит измерения по каждому validation-срезу и защищён хешем в `metadata.json`.
 
 ```bash
-python3 -m forecast_export --data-dir data/processed --freeze artifacts/macbook-benchmark/freeze.json --results artifacts/macbook-benchmark/results.json --output-dir artifacts/service
+python3 build_service_snapshot.py \
+  --data-dir data/processed \
+  --reference-map artifacts/service/reference_map.json \
+  --output-dir service_snapshot-new \
+  --horizon year
 ```
 
-Проверка качества без создания снимка:
-
-```bash
-python3 -m forecast_export --data-dir data/processed --freeze artifacts/macbook-benchmark/freeze.json --results artifacts/macbook-benchmark/results.json --quality-only
-```
-
-После появления модели, проходящей шлюз, локальный запуск использует `artifacts/service/forecast.csv` и `artifacts/service/metadata.json`:
+Для запуска без Docker сервис использует тот же встроенный snapshot:
 
 ```bash
 python3 -m pip install -r requirements-service.txt
-FORECAST_DIR=artifacts/service uvicorn forecast_api:app --host 127.0.0.1 --port 8000
+FORECAST_DIR=service_snapshot uvicorn forecast_api:app --host 127.0.0.1 --port 8000
 ```
 
 Откройте `http://127.0.0.1:8000/`: сервис отдаёт по `/` диспетчерский дашборд — один самодостаточный HTML-файл `static/index.html`. API также предоставляет `/health`, `/forecasts` (например, `/forecasts?route=17&start_date=2025-11-03&end_date=2025-11-03&hour=8`), `/forecasts/export.csv`, `/forecasts.csv` и `/reference-map`.
@@ -242,12 +240,19 @@ cd frontend && npm ci && npm run build
 
 Сборка кладёт результат в `frontend/dist/index.html`, копирует его в `static/index.html` и проверяет, что файл самодостаточен и укладывается в 3,5 МБ. Разработка, mock-режим без бекенда и снимок прогноза для разработки описаны в [frontend/README.md](frontend/README.md).
 
-Docker Compose использует снимок только для чтения и лимиты 2 CPU / 2 GiB без дополнительного swap. Диагностический снимок frozen winner прошёл live API/UI-приёмку, но не является production-прогнозом: его `/health` содержит `serving_mode: "diagnostic"` и `quality_passed: false`.
+Docker Compose уже содержит production snapshot, использует один Uvicorn worker и лимиты 2 CPU / 2 GiB без дополнительного swap. Из чистого клона достаточно одной команды:
 
 ```bash
-python3 -m forecast_export --diagnostic --data-dir data/processed --freeze artifacts/macbook-benchmark/freeze.json --results artifacts/macbook-benchmark/results.json --output-dir artifacts/service-diagnostic
-FORECAST_SNAPSHOT_DIR=./artifacts/service-diagnostic docker compose up -d --build
+docker compose up -d --build
+# UI:     http://localhost:8000/
+# health: http://localhost:8000/health
 docker compose down
+```
+
+Healthcheck требует `ready=true`, `serving_mode=production` и `quality_passed=true`. Для проверки другого валидного snapshot используйте overlay:
+
+```bash
+FORECAST_SNAPSHOT_DIR=./path/to/snapshot docker compose -f compose.yaml -f compose.snapshot.yaml up -d --build
 ```
 
 Базовая проверка тестов:
@@ -280,7 +285,7 @@ python3 -m benchmark_http --base-url http://127.0.0.1:8000 --container transport
 
 Финальный standard diagnostic report `artifacts/http-diagnostic-year-standard.json` завершился штатно (`nonstandard: false`, `acceptance_failed: false`) на backend hash `12f094643f98f246d699274d9904584a9afd182dfab697f36a8dc18192f49280` и diagnostic snapshot `231a098112d7`. Все 16 коротких ступеней прошли. На 400 RPS: hour `399.2` RPS/p95 `4.498291 ms`, day `398.933333`/`4.602584 ms`, week `398.266667`/`4.788500 ms`, CSV `398.7`/`3.704834 ms`; ошибок на этих ступенях не было. Soak day 900 s: `398.454444` completed RPS, p95 `4.511458 ms`, p99 `6.772833 ms`, 1 ошибка (`error_ratio 0.000002788552`), 1,391 missed (`0.386389%`), `generator_limited: true`, accepted. CPU soak (337 samples) mean/max `41.569852%/49.16%` одного ядра; RAM `54.99–57.61 MiB`.
 
-Это performance evidence диагностического снимка, не production-quality claim: лучший WAPE остаётся `0.8484580413008345`, прогноз остановок недоступен без boarding-to-stop link, а измеренная погода не включена в финальную модель из-за практически нулевого добавочного эффекта после учёта месяца. OSM direct URL и marker работают; inline iframe в IAB остаётся неподтверждённым. Новых benchmark/scans/model runs не запланировано без нового запроса пользователя.
+Это performance evidence исторического диагностического снимка, а не отдельный production-quality claim. Delivery-snapshot независимо прошёл порог с combined early `0.8459114822`; прогноз остановок недоступен без boarding-to-stop link, а измеренная погода не включена в финальную модель из-за практически нулевого добавочного эффекта после учёта месяца. OSM direct URL и marker работают; inline iframe в IAB остаётся неподтверждённым. Новых benchmark/scans/model runs не запланировано без нового запроса пользователя.
 
 Команда дополнительного прогона использует только годовые профили, те же 10-секундный warmup, 30-секундные ступени и 50/100/200/400 RPS, без day soak:
 
@@ -304,13 +309,13 @@ python3 artifacts/accuracy/readme-test/evaluate.py
 
 | Период 2025 | Строк | WAPE | WAPE-score |
 | --- | ---: | ---: | ---: |
-| Май–июнь | 14 640 | 0.1390596914 | 0.8609403086 |
-| Июль–август | 14 880 | 0.1650069283 | 0.8349930717 |
-| Сентябрь–октябрь | 14 640 | 0.1600365393 | 0.8399634607 |
+| Май–июнь | 14 640 | 0.1410584958 | 0.8589415042 |
+| Июль–август | 14 880 | 0.1681376510 | 0.8318623490 |
+| Сентябрь–октябрь | 14 640 | 0.1600584140 | 0.8399415860 |
 
-На каждом срезе обучение использует только прошлое, без обновления внутри горизонта. Combined ранних срезов после округления — `0.8484549462`; это отношение сумм ошибок и фактических посадок, а не среднее score. Ранние срезы использовались для выбора модели; сентябрь–октябрь ранее изучался в EDA, поэтому оценки не являются результатом на независимом скрытом тесте. Округление — Python `round` (половины к чётному); правило для половин у организаторов не указано.
+На каждом срезе обучение использует только прошлое, без обновления внутри горизонта. Combined ранних срезов после округления — `0.8459114822`; это отношение сумм ошибок и фактических посадок, а не среднее score. Ранние срезы использовались для выбора модели; сентябрь–октябрь ранее изучался в EDA, поэтому оценки не являются результатом на независимом скрытом тесте. Округление — Python `round` (половины к чётному); правило для половин у организаторов не указано.
 
-Локальные результаты, разбивки по маршрутам/месяцам/часам и хеши сохранены в `artifacts/accuracy/readme-test/results.json`. Там же `submission.csv`: прогноз ноября–декабря после обучения на январе–октябре, UTF-8, `;`, точный заголовок, 14 640 уникальных ключей в порядке `test_submission.csv`, неотрицательные целые прогнозы. SHA-256 принятого submission: `9e714226ecb2513d97fbf7968ecf2a79e435b7f5bb289307ba59edf77db82234`. Скрипт сверяет history с labels архива и проверяет сохранённые CSV. Сгенерированные артефакты исключены из Git; скрипты воспроизведения и исследовательские заметки сохранены в репозитории.
+Локальные результаты, разбивки по маршрутам/месяцам/часам и хеши сохранены в `artifacts/accuracy/readme-test/results.json`. Там же `submission.csv`: прогноз ноября–декабря после обучения на январе–октябре, UTF-8, `;`, точный заголовок, 14 640 уникальных ключей в порядке `test_submission.csv`, неотрицательные целые прогнозы. SHA-256 принятого submission и `/forecasts.csv` из delivery-контейнера: `9bac9c421fb8d1762ef4d9c7267f5fdcae9edeb6cd59868f156c399be15daeca`. Скрипт сверяет history с labels архива и проверяет сохранённые CSV. Delivery-snapshot версионируется в `service_snapshot/`; остальные сгенерированные артефакты исключены из Git.
 
 Официальный WAPE-score ноября–декабря неизвестен: скрытый ground truth отсутствует. Значение baseline ≈0.48 относится к скрытому периоду и напрямую с локальными score не сравнивается. Этот запуск не изменяет quality gate и снимок веб-сервиса.
 
