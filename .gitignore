@@ -3,3 +3,9 @@ __pycache__/
 *.zip
 data/processed/
 artifacts/baseline/
+artifacts/accuracy/
+artifacts/macbook-benchmark/
+artifacts/service/
+artifacts/service-diagnostic/
+artifacts/service-diagnostic-year/
+artifacts/http-*.json
