@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
+// До загрузки тестов и создания worker-процессов: ловим зависимость от локального пояса.
+process.env.TZ = 'Asia/Novosibirsk';
+
 // Бекенд разработки (design D3). Переопределяется переменной окружения API_TARGET.
 const apiTarget = process.env.API_TARGET ?? 'http://127.0.0.1:8000';
 

@@ -2,6 +2,8 @@ import { Paper, ScrollArea, Stack, Tabs, Text, ThemeIcon, Title } from '@mantine
 import { IconCalendarTime, IconInfoCircle, IconLayoutDashboard, IconMap, IconTable, type Icon } from '@tabler/icons-react';
 import { isTabId, TABS, useUiStore, type TabId } from '../../state/store';
 import classes from './layout.module.css';
+import type { ForecastResults } from '../../hooks/useForecastSeries';
+import { ForecastOverview } from '../kpi/ForecastOverview';
 
 const TAB_META: Record<TabId, { icon: Icon; placeholder: string }> = {
   overview: { icon: IconLayoutDashboard, placeholder: 'Ключевые показатели, график динамики, тепловая карта «день недели × час» и рейтинг маршрутов.' },
@@ -34,7 +36,7 @@ function Placeholder({ tab }: { tab: TabId }) {
   );
 }
 
-export function DashboardTabs() {
+export function DashboardTabs({ forecast }: { forecast: ForecastResults }) {
   const tab = useUiStore((state) => state.tab);
   const setTab = useUiStore((state) => state.setTab);
 
@@ -54,7 +56,7 @@ export function DashboardTabs() {
       </ScrollArea>
       {TABS.map(({ value }) => (
         <Tabs.Panel key={value} value={value}>
-          <Placeholder tab={value} />
+          {value === 'overview' ? <ForecastOverview forecast={forecast} /> : <Placeholder tab={value} />}
         </Tabs.Panel>
       ))}
     </Tabs>

@@ -19,6 +19,7 @@ function ok(body: unknown): Response {
 }
 
 beforeEach(() => {
+  window.history.replaceState(null, '', '/?routes=');
   useUiStore.setState({ tab: 'overview', panelOpen: false });
   window.localStorage.clear();
 });

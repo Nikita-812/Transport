@@ -14,5 +14,5 @@ export function App() {
   if (health.isPending) return <LoadingScreen />;
   if (health.isError) return <ServiceUnavailable error={health.error} onRetry={retry} retrying={health.isFetching} />;
   if (!health.data.ready) return <ServiceUnavailable onRetry={retry} retrying={health.isFetching} />;
-  return <Dashboard />;
+  return <Dashboard key={`${health.data.forecast_version}:${health.data.coverage.start}:${health.data.coverage.end}`} />;
 }
