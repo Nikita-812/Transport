@@ -29,12 +29,13 @@ def write_snapshot(directory, corrupt=False):
     content = "route;date;hour;prediction\n" + "".join(
         f"{route};{day};{hour};{prediction}\n" for route, day, hour, prediction in rows
     )
-    (directory / "forecast.csv").write_text(content, encoding="utf-8")
+    content_bytes = content.encode("utf-8")
+    (directory / "forecast.csv").write_bytes(content_bytes)
     (directory / "metadata.json").write_text(json.dumps({
         "schema_version": 1,
         "rows": len(rows),
-        "forecast_sha256": hashlib.sha256(content.encode()).hexdigest(),
-        "forecast_version": "winner:" + hashlib.sha256(content.encode()).hexdigest()[:12],
+        "forecast_sha256": hashlib.sha256(content_bytes).hexdigest(),
+        "forecast_version": "winner:" + hashlib.sha256(content_bytes).hexdigest()[:12],
         "quality_passed": True,
         "serving_mode": "production",
     }), encoding="utf-8")
@@ -336,15 +337,15 @@ class QualityTest(unittest.TestCase):
             })
             snapshot = forecast_api.load_snapshot(directory)
             self.assertEqual(path, directory / "forecast.csv")
-            self.assertTrue(path.is_symlink())
-            self.assertTrue((directory / "current").is_symlink())
+            self.assertTrue(path.exists())
+            self.assertTrue((directory / "current").is_symlink() or (directory / "current").is_file())
             self.assertEqual(snapshot.version, "winner:" + hashlib.sha256(path.read_bytes()).hexdigest()[:12])
-            first_generation = (directory / "current").resolve()
+            first_generation = forecast_api.snapshot_directory(directory)
             forecast_export.publish_snapshot(directory, future, [1.0] * len(future), {
                 "schema_version": 1, "rows": len(future), "winner": "winner-two",
                 "quality_passed": True, "serving_mode": "production",
             })
-            self.assertNotEqual((directory / "current").resolve(), first_generation)
+            self.assertNotEqual(forecast_api.snapshot_directory(directory), first_generation)
             self.assertTrue(forecast_api.load_snapshot(directory).version.startswith("winner-two:"))
 
 

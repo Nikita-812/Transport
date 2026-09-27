@@ -193,12 +193,24 @@ def _switch_current_snapshot(output_dir, generation):
     # Keep old generations: startup resolves current once, so safe cleanup needs reader lifecycle coordination.
     pointer = output_dir / f".current-{generation.name}"
     pointer.unlink(missing_ok=True)
-    pointer.symlink_to(Path(".snapshots") / generation.name)
-    os.replace(pointer, output_dir / "current")
+    if os.name == "nt":
+        # Creating symlinks commonly requires elevated privileges on Windows. A validated
+        # generation-id file keeps the pointer switch atomic without that requirement.
+        pointer.write_bytes((generation.name + "\n").encode("ascii"))
+    else:
+        pointer.symlink_to(Path(".snapshots") / generation.name)
+    try:
+        os.replace(pointer, output_dir / "current")
+    except Exception:
+        pointer.unlink(missing_ok=True)
+        raise
     for path in _legacy_paths(output_dir):
         link = output_dir / f".{path.name}-{generation.name}"
         link.unlink(missing_ok=True)
-        link.symlink_to(Path("current") / path.name)
+        if os.name == "nt":
+            link.write_bytes((generation / path.name).read_bytes())
+        else:
+            link.symlink_to(Path("current") / path.name)
         os.replace(link, path)
 
 
@@ -206,8 +218,9 @@ def _migrate_legacy_snapshot(output_dir, snapshots):
     current = output_dir / "current"
     paths = _legacy_paths(output_dir)
     if current.exists() or current.is_symlink():
-        if not current.is_symlink():
-            raise ValueError("existing snapshot current pointer must be a symlink")
+        from forecast_api import snapshot_directory
+
+        snapshot_directory(output_dir)
         return
     if any(path.exists() for path in paths) and not all(path.exists() for path in paths):
         raise ValueError("existing snapshot is incomplete")
