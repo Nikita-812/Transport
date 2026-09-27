@@ -43,12 +43,13 @@ describe('оболочка', () => {
     expect(screen.getByText('Диагностический снимок')).toBeInTheDocument();
   });
 
-  it('бейдж раскрывает пояснение о внутреннем пороге 0,95', async () => {
+  it('бейдж раскрывает пояснение о внутреннем пороге 0,80', async () => {
     setApiTransport(() => Promise.resolve(ok(HEALTH)));
     renderWithProviders(<App />);
     await userEvent.click(await screen.findByRole('button', { name: /Диагностический снимок/ }));
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText(/0,95/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/не ниже 0,80 на каждом срезе/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/повторяет записанные метрики/)).toBeInTheDocument();
     expect(within(dialog).getByText(/Это не ошибка сервиса/)).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole('button', { name: 'Подробнее о модели' }));
     expect(useUiStore.getState().tab).toBe('model');

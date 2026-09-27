@@ -1,6 +1,7 @@
 import { Anchor, Badge, Group, Popover, Stack, Text, UnstyledButton } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import type { HealthReady } from '../../api/types';
+import { QUALITY_GATE } from '../../data/model-info';
 import { daysInclusive } from '../../domain/dates';
 import { formatDays, formatIsoDate } from '../../domain/format';
 import { useUiStore } from '../../state/store';
@@ -33,19 +34,11 @@ export function SnapshotBadge({ health }: SnapshotBadgeProps) {
       <Popover.Dropdown>
         <Stack gap="xs">
           <Text fw={600}>{label}</Text>
-          {diagnostic ? (
-            <Text size="sm">
-              Снимок не прошёл внутренний порог качества команды: WAPE-score не ниже 0,95 на каждом срезе проверки. Этот
-              порог строже шкалы жюри, где максимальный балл дают за WAPE-score выше 0,88. Это не ошибка сервиса: прогноз
-              доступен полностью.
-            </Text>
-          ) : (
-            <Text size="sm">
-              {health.quality_passed
-                ? 'Снимок прошёл внутренний порог качества команды: WAPE-score не ниже 0,95 на каждом срезе проверки.'
-                : 'Снимок опубликован в рабочем режиме.'}
-            </Text>
-          )}
+          <Text size="sm">
+            {diagnostic
+              ? QUALITY_GATE.diagnostic
+              : health.quality_passed ? QUALITY_GATE.passed : QUALITY_GATE.unknown}
+          </Text>
           <Stack gap={2}>
             <Group gap={6} wrap="nowrap" align="baseline">
               <Text size="sm" c="dimmed" miw={78}>

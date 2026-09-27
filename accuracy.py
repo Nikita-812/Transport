@@ -788,7 +788,7 @@ def _score(rows, predictions):
 
 def target_met(scores):
     scores = list(scores)
-    return bool(scores) and all(score >= 0.95 for score in scores)
+    return bool(scores) and all(score >= pipeline.TARGET_WAPE_SCORE for score in scores)
 
 
 def _write_predictions(path, rows, predictions, cutoff):
@@ -820,7 +820,7 @@ def evaluate(data_dir=Path("data/processed"), output_dir=Path("artifacts/accurac
     report = {
         "protocol": "fixed-origin two-calendar-month evaluation; candidate statistics freeze at each origin and never use validation labels",
         "incumbent_early_wape_score": INCUMBENT_SCORE,
-        "target_wape_score": 0.95,
+        "target_wape_score": pipeline.TARGET_WAPE_SCORE,
         "target_scope": "early fixed-origin slices only; late slice has not been evaluated",
         "history_sha256": history_sha256,
         "accuracy_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),

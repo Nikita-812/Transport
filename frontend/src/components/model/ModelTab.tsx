@@ -4,7 +4,7 @@ import type { HealthReady } from '../../api/types';
 import { OSM_ROUTES } from '../../data/osm-routes';
 import {
   ADAPTATION, APPLICABILITY, LIMITATIONS, modelFacts, modelName, NOT_INCLUDED, NOT_INCLUDED_SOURCE,
-  QUALITY, README_URL, ROADMAP, SOURCES, type ModelFacts,
+  QUALITY, QUALITY_GATE, README_URL, ROADMAP, SOURCES, type ModelFacts,
 } from '../../data/model-info';
 import { daysInclusive } from '../../domain/dates';
 import { formatDays, formatDecimal, formatIsoDate } from '../../domain/format';
@@ -45,11 +45,8 @@ function Snapshot({ health }: { health: HealthReady }) {
       </Stack>
       <Text size="sm">
         {diagnostic
-          ? 'Снимок не прошёл внутренний порог качества команды: WAPE-score не ниже 0,95 на каждом срезе проверки. Этот порог '
-            + 'строже шкалы жюри, где максимальный балл дают за WAPE-score выше 0,88. Это не ошибка сервиса: прогноз доступен полностью.'
-          : health.quality_passed
-            ? 'Снимок прошёл внутренний порог качества команды: WAPE-score не ниже 0,95 на каждом срезе проверки.'
-            : 'Снимок опубликован в рабочем режиме.'}
+          ? QUALITY_GATE.diagnostic
+          : health.quality_passed ? QUALITY_GATE.passed : QUALITY_GATE.unknown}
       </Text>
     </Section>
   );
