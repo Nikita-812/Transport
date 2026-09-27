@@ -167,4 +167,17 @@ describe('вкладка «Таблица»', () => {
     await userEvent.selectOptions(weather, 'frost');
     expect(weather).toHaveAccessibleDescription('экспертное допущение: зимних дней в проверочных срезах нет');
   });
+
+  it('блок «Сценарий» называет измеренные множители и экспертные допущения отдельно от модели', async () => {
+    window.history.replaceState(null, '', `/${PERIOD}`);
+    renderWithProviders(<App />);
+    await screen.findByLabelText('Погода');
+    const alert = screen.getAllByRole('alert').find((item) => item.textContent?.includes('не обучена'));
+    expect(alert).toBeDefined();
+    expect(alert).toHaveTextContent('Модель на погоде и событиях не обучена');
+    expect(alert).toHaveTextContent(/множители дождя и жары измерены отдельно/i);
+    expect(alert).toHaveTextContent(/Open-Meteo/);
+    expect(alert).toHaveTextContent(/май–октябрь 2025/);
+    expect(alert).toHaveTextContent(/снегопад, мороз, сезон и событие — экспертные допущения/);
+  });
 });
